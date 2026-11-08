@@ -1,0 +1,20 @@
+# runtime-base is the Slim target linked by docker-bake.hcl.
+# Standalone builds can set --build-arg BASE_IMAGE=<published-slim-image>.
+ARG BASE_IMAGE=runtime-base
+FROM ${BASE_IMAGE} AS download
+USER root
+COPY node-24/ffmpeg.lock.json scripts/download-ffmpeg.mjs /build/
+RUN node /build/download-ffmpeg.mjs /build/ffmpeg.lock.json /ffmpeg
+
+FROM ${BASE_IMAGE}
+USER root
+COPY --from=download --chmod=0555 /ffmpeg/ffmpeg /usr/local/bin/ffmpeg
+COPY --from=download --chmod=0444 /ffmpeg/LICENSE /ffmpeg/README /usr/local/share/licenses/ffmpeg/
+COPY --chmod=0444 node-24/ffmpeg.lock.json /usr/local/share/licenses/ffmpeg/ffmpeg.lock.json
+ENV FFMPEG_BIN=/usr/local/bin/ffmpeg
+ENV FFMPEG_BINARY_SHA256=e7e7fb30477f717e6f55f9180a70386c62677ef8a4d4d1a5d948f4098aa3eb99
+LABEL org.neptu.ffmpeg.version="7.0.2" \
+      org.neptu.ffmpeg.sha256="e7e7fb30477f717e6f55f9180a70386c62677ef8a4d4d1a5d948f4098aa3eb99"
+RUN printf '%s  %s\n' "$FFMPEG_BINARY_SHA256" "$FFMPEG_BIN" | sha256sum --check --strict \
+    && ffmpeg -version
+USER node

@@ -1,0 +1,103 @@
+name: Build and publish Node 24 runtimes
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+    paths:
+      - 'node-24/**'
+      - 'scripts/**'
+      - 'docker-bake.hcl'
+      - '.dockerignore'
+      - '.github/workflows/build.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'node-24/**'
+      - 'scripts/**'
+      - 'docker-bake.hcl'
+      - '.dockerignore'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: runtimes-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  runtimes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Configure image names and tags
+        env:
+          REPOSITORY: ${{ github.repository }}
+          SERVER_URL: ${{ github.server_url }}
+        run: |
+          echo "IMAGE_NAME=ghcr.io/${REPOSITORY,,}" >> "$GITHUB_ENV"
+          echo "SOURCE_URL=$SERVER_URL/$REPOSITORY" >> "$GITHUB_ENV"
+          echo "REVISION=$GITHUB_SHA" >> "$GITHUB_ENV"
+          echo "PUBLISH_ALIASES=$([[ "$GITHUB_REF" == refs/heads/main ]] && echo true || echo false)" >> "$GITHUB_ENV"
+          if [[ "$GITHUB_REF_TYPE" == tag ]]; then
+            echo "RELEASE_TAG=$GITHUB_REF_NAME" >> "$GITHUB_ENV"
+          fi
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Build and load both runtimes
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: docker-bake.hcl
+          load: true
+          provenance: false
+          set: |
+            slim.cache-from=type=gha,scope=node-24-slim
+            slim.cache-to=type=gha,mode=max,scope=node-24-slim
+            ffmpeg.cache-from=type=gha,scope=node-24-ffmpeg
+            ffmpeg.cache-to=type=gha,mode=max,scope=node-24-ffmpeg
+
+      - name: Verify runtimes without network access
+        run: bash scripts/smoke-test.sh
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish verified runtimes
+        id: publish
+        if: github.event_name != 'pull_request'
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: docker-bake.hcl
+          push: true
+          provenance: mode=max
+
+      - name: Report published digests
+        if: github.event_name != 'pull_request'
+        env:
+          BUILD_METADATA: ${{ steps.publish.outputs.metadata }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os
+          metadata = json.loads(os.environ['BUILD_METADATA'])
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              for variant in ('slim', 'ffmpeg'):
+                  digest = metadata[variant]['containerimage.digest']
+                  summary.write(f"- `{os.environ['IMAGE_NAME']}:node-24-{variant}`: `{digest}`\n")
+          PYTHON

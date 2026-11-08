@@ -1,0 +1,7 @@
+**
+!node-24/
+!node-24/Dockerfile-Slim
+!node-24/Dockerfile-ffmpeg
+!node-24/ffmpeg.lock.json
+!scripts/
+!scripts/download-ffmpeg.mjs

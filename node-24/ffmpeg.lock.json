@@ -1,0 +1,13 @@
+{
+  "version": "7.0.2",
+  "platform": "linux",
+  "arch": "x64",
+  "release": "b6.1.1",
+  "baseUrl": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1",
+  "binarySha256": "e7e7fb30477f717e6f55f9180a70386c62677ef8a4d4d1a5d948f4098aa3eb99",
+  "files": {
+    "ffmpeg-linux-x64.gz": "bfe8a8fc511530457b528c48d77b5737527b504a3797a9bc4866aeca69c2dffa",
+    "linux-x64.LICENSE": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+    "linux-x64.README": "72f4b1b06d419d22ace6e7cc75f06826f90737345aa0b1736158929f4aacc537"
+  }
+}

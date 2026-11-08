@@ -1,0 +1,22 @@
+# Keep the runtime contract of ghcr.io/wingsun97/neptu:node-24-slim.
+# Update the official Node digest deliberately when upgrading Node 24.
+ARG NODE_IMAGE=node:24.16.0-bookworm-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c574f736c476489d09f560a203
+FROM ${NODE_IMAGE}
+
+RUN apt-get update && apt-get install -y --no-install-recommends tini \
+    && rm -rf /var/lib/apt/lists/*
+RUN npm install -g pnpm@10.33.0
+
+WORKDIR /app
+RUN chown node:node /app
+
+ENV PNPM_HOME=/tmp/.pnpm
+ENV PATH="$PNPM_HOME:$PATH"
+ENV PM2_HOME=/tmp/.pm2
+ENV TMPDIR=/tmp
+RUN mkdir -p /tmp/.pnpm /tmp/.pm2 && \
+    chown -R node:node /tmp/.pnpm /tmp/.pm2
+
+USER node
+ENTRYPOINT ["tini", "--"]
+CMD ["sleep", "infinity"]
