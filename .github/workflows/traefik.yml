@@ -1,0 +1,87 @@
+name: Build and publish Traefik
+
+on:
+  push:
+    branches: [main]
+    tags: ['traefik-v*']
+    paths:
+      - 'traefik/**'
+      - '.github/workflows/traefik.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'traefik/**'
+      - '.github/workflows/traefik.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: traefik-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  traefik:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Configure source and immutable tags
+        env:
+          SERVER_URL: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          echo "REVISION=$GITHUB_SHA" >> "$GITHUB_ENV"
+          echo "SOURCE_URL=$SERVER_URL/$REPOSITORY" >> "$GITHUB_ENV"
+          if [[ "$GITHUB_REF_TYPE" == tag ]]; then
+            echo "RELEASE_TAG=$GITHUB_REF_NAME" >> "$GITHUB_ENV"
+          fi
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build and load
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: traefik/docker-bake.hcl
+          load: true
+          provenance: false
+          set: |
+            traefik.cache-from=type=gha,scope=traefik
+            traefik.cache-to=type=gha,mode=max,scope=traefik
+      - name: Verify default and deployment users
+        run: |
+          python3 traefik/smoke-test.py --image "ghcr.io/joysun99/neptu-traefik:git-$REVISION"
+          python3 traefik/smoke-test.py --image "ghcr.io/joysun99/neptu-traefik:git-$REVISION" --user 1000:1000
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish verified image
+        id: publish
+        if: github.event_name != 'pull_request'
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          source: .
+          files: traefik/docker-bake.hcl
+          push: true
+          provenance: mode=max
+      - name: Pull back and verify published digest
+        if: github.event_name != 'pull_request'
+        env:
+          BUILD_METADATA: ${{ steps.publish.outputs.metadata }}
+        run: |
+          DIGEST=$(python3 -c 'import json,os; print(json.loads(os.environ["BUILD_METADATA"])["traefik"]["containerimage.digest"])')
+          IMAGE="ghcr.io/joysun99/neptu-traefik@$DIGEST"
+          docker pull "$IMAGE"
+          python3 traefik/smoke-test.py --image "$IMAGE"
+          python3 traefik/smoke-test.py --image "$IMAGE" --user 1000:1000
+          echo "Deployment reference: \`$IMAGE\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Source: \`$GITHUB_SHA\`; routing smoke checks passed. Production replacement requires its own site authorization." >> "$GITHUB_STEP_SUMMARY"

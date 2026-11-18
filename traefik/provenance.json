@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "upstream": "https://github.com/traefik/traefik",
+  "version": "3.7.14-neptu1",
+  "platform": "linux/amd64",
+  "importedFrom": {
+    "repository": "neptu-global",
+    "revision": "bb374e341e0174eaacbd483d34bac4c86fdf8fc3",
+    "dockerfile": "images/traefik/Dockerfile",
+    "sha256": "a0ba937b46c0021b0acf832b2b5b8787f1b59dbc56c5596db0271687ef8086df"
+  },
+  "existingDeploymentImage": "ghcr.io/joysun99/neptu-traefik@sha256:acffd8c4f10796d5b34397431e7d7c62c4ace03b89f5a470f441a613965f6e3f",
+  "note": "Existing image is a deployment baseline, not the expected digest of a rebuild. New source labels and build attestations change image identity."
+}

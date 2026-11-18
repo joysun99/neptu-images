@@ -1,6 +1,8 @@
 # Neptu runtime images
 
-Node 24.16.0 production runtimes, published at `ghcr.io/joysun99/neptu-images`.
+Node 24.16.0 production runtimes are published at `ghcr.io/joysun99/neptu-images`.
+The shared Traefik runtime is published separately at
+`ghcr.io/joysun99/neptu-traefik`; see [Shared Traefik runtime](#shared-traefik-runtime).
 The supported platform is `linux/amd64`, matching KO. Images run as UID 1000
 (`node`) in `/app`, with `tini --` as entrypoint and `sleep infinity` as default
 command. pnpm is fixed at 10.33.0. Read-only containers need a writable `/tmp`.
@@ -70,3 +72,68 @@ files by hand.
 GHCR packages must be publicly readable if servers pull without authentication.
 For a private package, configure registry authentication separately. Never place
 registry tokens in a Dockerfile, build argument, archive, or repository file.
+
+## Shared Traefik runtime
+
+`traefik/` now owns the standalone Traefik build definition and publication
+workflow. Keep using the public package `ghcr.io/joysun99/neptu-traefik`; the
+application repositories consume this image rather than building an ingress
+image inside each application release. The existing Node runtime definitions
+and workflow are independent and unchanged.
+
+The imported baseline is **3.7.14-neptu1**, with checksum-pinned official source,
+Go builder, Distroless base and `golang.org/x/net` patch. It was copied from
+`neptu-global` revision `bb374e341e0174eaacbd483d34bac4c86fdf8fc3`;
+[provenance](traefik/provenance.json) records the original Dockerfile checksum
+and existing HKG image. The new context contains only the Dockerfile and Go
+module download helper; no private application code, configuration, certificates
+or credentials are required or included. The image defaults to UID/GID 65532;
+existing deployments can retain their explicit `user: 1000:1000` for mounted
+configuration and ACME storage. Ports remain 8080, 8443 and 8082.
+
+Run from the repository root on Linux with Docker, Python 3 and OpenSSL:
+
+```bash
+docker buildx bake -f traefik/docker-bake.hcl --load
+python3 traefik/smoke-test.py
+python3 traefik/smoke-test.py --user 1000:1000
+```
+
+The smoke checks exercise non-root/read-only startup, version, health, HTTP,
+HTTPS with SAN verification, and SNI/ALPN TLS passthrough sharing the HTTPS
+port. All backends and certificates are disposable test fixtures, listening
+only on loopback. Test containers are removed on completion.
+
+The separate [Traefik workflow](.github/workflows/traefik.yml) builds and tests
+PRs without publication. Main pushes affecting `traefik/`, `traefik-v*` tags,
+and manual runs publish source tags `git-<full-git-sha>`; tag runs also publish
+the Git release tag. There is no `latest` alias. Actions use `GITHUB_TOKEN`
+with package write permission, publish build provenance, pull back the actual
+published digest, and repeat both runtime-user checks. The Actions summary
+records the deployment reference. This workflow does not build or publish the
+Node images. The existing `v*` tags remain reserved for Node releases; use
+`traefik-v*` for Traefik releases.
+
+Future deployment manifests must select the verified output by **digest**:
+
+```text
+ghcr.io/joysun99/neptu-traefik@sha256:<digest-from-successful-Traefik-workflow>
+```
+
+Never deploy a moving source tag as a substitute for the reviewed digest.
+Rebuilding the imported recipe creates a new image identity because source
+labels and attestations change; it does not reproduce or replace the historical
+HKG digest automatically. Existing offline archives and release records retain
+their original image identity. Publication does not restart deployed services.
+Production upgrades still need a site-specific plan and authorization.
+
+As of the 2026-11-18 read-only inspection, HKG uses the existing baseline:
+
+```text
+ghcr.io/joysun99/neptu-traefik@sha256:acffd8c4f10796d5b34397431e7d7c62c4ace03b89f5a470f441a613965f6e3f
+```
+
+USG still uses `sha256:de799a2a372626fefacf1e227283cd58b1e99b0433d8391e2392942ad104e6eb`
+(3.7.13). Aligning USG to the existing HKG digest is a separate, bounded ingress
+change; it does not require first publishing a rebuilt image. New central builds
+must pass their workflow and site review before replacing this baseline.
