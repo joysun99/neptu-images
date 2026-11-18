@@ -5,8 +5,9 @@
 角色独立于 Device Dispatch，无自动选主。本目录是新实现，旧线上
 `neptu-global-dispatch-certificate-mirror` 的包名、摘要和运行方式保留历史身份。
 
-当前为本地开发版本，尚未发布或替换线上旧服务。提供 CLI Console、Web Console、
-HTTPS Token Join／同步和 Traefik 适配；Caddy 适配仍待实现和验证。
+首期已[发布](../releases/cert-sync-53f9387.json)，提供 CLI Console、Web Console、
+HTTPS Token Join／同步和 Traefik 适配。各部署的现场证据由部署仓库维护；Caddy 适配
+仍待实现和验证，不将本镜像发布等同于所有代理或自然续期的生产验收。
 
 ## 工作方式
 
@@ -111,10 +112,10 @@ SNI／ALPN 路由。只有 HTTP Host／路径增加 cert-sync 路由，不修改
 ## 安装与加入
 
 以下在新部署目录操作，假定当前用户和容器均 UID 1000；其他 UID 先显式调整所有权。
-先发布验证镜像并设置准确 digest，当前开发版本没有可供生产使用的发布摘要。
+采用已验证的发布 digest，并先固定各节点的部署范围与回退条件。
 
 ```bash
-export CERT_SYNC_IMAGE='ghcr.io/joysun99/neptu-cert-sync@sha256:<verified-digest>'
+export CERT_SYNC_IMAGE='ghcr.io/joysun99/neptu-cert-sync@sha256:32d328311f17c9de8b36d7d291d71422d15995c19dc03ccc649922c79cb2b1e3'
 export TRAEFIK_NETWORK='<existing-ingress-network>'
 install -d -m 700 state dynamic
 node -e 'require("node:fs").writeFileSync("admin-token",require("node:crypto").randomBytes(32).toString("base64url")+"\n",{mode:0o600,flag:"wx"})'
@@ -167,8 +168,9 @@ Follower 已先保存原 operationId 和凭据；Leader 对同一请求返回原
 - Leader 配置“需要申请和续期的域名”，再给每个 Follower 授权可取得的域名。
 - Follower 配置“需要消费的域名”，只能取得其授权与 Leader 当前管理列表的交集；
   列表中任何未授权／缺失证书会使该次整批同步失败，保留旧证书。
-- 增加域名：Leader 增加列表 → 更新该 Follower 授权 → Follower 增加消费列表 → 同步；
-  不需重新 Join。CLI 设置域名：`cert-sync domains --config ... --set a.example.net,b.example.net`。
+- 增加已多 IP 的共享域名：先在已加入的 Follower 准备消费列表／挑战转发，再在 Leader
+  增加申请列表和该 Follower 授权，证书 ready 后同步。不需重新 Join；准备期间暂时未
+  授权／未签发会使整批同步保留旧证书。域名的业务 router／DNS 仍由部署配置管理。CLI 设置域名：`cert-sync domains --config ... --set a.example.net,b.example.net`。
 - 删除域名：先停止对应业务使用，再删除消费列表／授权／Leader 列表；下一次成功同步
   移除本服务的活动证书引用，旧 PEM 版本保留。删除 Leader 列表不会自动清理 ACME 的
   历史证书；Traefik 可能仍续期存储中的历史条目，需要另行审阅后清理，不能宣称立即停止续期。
@@ -231,3 +233,6 @@ Public，也不复用旧包作为新公共镜像。原始参考与新实现边�
 2026-11-18 部署预检补充：新增 `proxy.tlsOptions` 保留现有命名 TLS 策略。初次
 [17 项验证记录](verification.json)对应原始提交 `8417f0a`，其摘要保留历史字节；
 修订候选另有 [TLS 策略验证](verification-tls-options.json)，不改写旧结果。
+
+历史验证 JSON 的摘要分别绑定 `8417f0a`／`53f9387` 当时的源字节；后续指南更新
+不改写这些历史记录。运行交付引用见[准确发行回执](../releases/cert-sync-53f9387.json)。
