@@ -82,7 +82,7 @@ registry tokens in a Dockerfile, build argument, archive, or repository file.
 ## Shared Traefik runtime
 
 `traefik/` now owns the standalone Traefik build definition and publication
-workflow. Keep using the public package `ghcr.io/joysun99/neptu-traefik`; the
+workflow. Keep using the shared package `ghcr.io/joysun99/neptu-traefik`; the
 application repositories consume this image rather than building an ingress
 image inside each application release. The existing Node runtime definitions
 and workflow are independent and unchanged.
@@ -135,6 +135,18 @@ Future deployment manifests must select the verified output by **digest**:
 ```text
 ghcr.io/joysun99/neptu-traefik@sha256:<digest-from-successful-Traefik-workflow>
 ```
+
+Verified central publication from source `7dee2ee0f2152299c104462d9746a3f4384ff0bc`:
+
+```text
+ghcr.io/joysun99/neptu-traefik@sha256:f4ce119ce03dc781b7e4c2d12d26d286668d8d84fe68aea61e19d8c59d4d979f
+```
+
+The [release receipt](releases/traefik-7dee2ee.json) records successful publication,
+registry pullback and both runtime-user checks. This package currently requires
+registry login: the anonymous check returned HTTP 401. Set the package to Public
+if unauthenticated server pulls are required. This release does not change the
+running HKG/USG images.
 
 Never deploy a moving source tag as a substitute for the reviewed digest.
 Rebuilding the imported recipe creates a new image identity because source

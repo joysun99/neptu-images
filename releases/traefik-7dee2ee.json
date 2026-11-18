@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "family": "traefik",
+  "version": "3.7.14-neptu1",
+  "platforms": [
+    "linux/amd64"
+  ],
+  "sourceRepository": "https://github.com/joysun99/neptu-images",
+  "sourceCommit": "7dee2ee0f2152299c104462d9746a3f4384ff0bc",
+  "dockerfile": "traefik/Dockerfile",
+  "dockerfileSHA256": "f406a1e63ce682419c5bed7d80c7b0131b23df185b144f13a7ee5593e5dc8a1b",
+  "sourceTag": "ghcr.io/joysun99/neptu-traefik:git-7dee2ee0f2152299c104462d9746a3f4384ff0bc",
+  "deploymentReference": "ghcr.io/joysun99/neptu-traefik@sha256:f4ce119ce03dc781b7e4c2d12d26d286668d8d84fe68aea61e19d8c59d4d979f",
+  "runtimeManifestDigest": "sha256:69372b8feb070b1915891c1528fadb23d230be851deced450965bf7dc72c7640",
+  "workflow": {
+    "runId": 44207233170,
+    "attempt": 2,
+    "url": "https://github.com/joysun99/neptu-images/actions/runs/44207233170/attempts/2",
+    "conclusion": "success"
+  },
+  "verification": {
+    "builtBeforePublish": true,
+    "registryDigestPulledBack": true,
+    "usersVerifiedBeforeAndAfterPublication": [
+      "65532:65532",
+      "1000:1000"
+    ],
+    "checks": [
+      "version",
+      "readonly-nonroot",
+      "ping",
+      "http",
+      "https-verified-san",
+      "same-port-device-sync-join-alpn-passthrough",
+      "missing-alpn-selector-refused"
+    ],
+    "provenanceMode": "max",
+    "anonymousPull": false,
+    "anonymousTokenHTTPStatus": 401,
+    "authenticatedPull": true
+  },
+  "productionDeploymentChanged": false,
+  "productionQualified": false
+}
