@@ -107,7 +107,10 @@ python3 traefik/smoke-test.py --user 1000:1000
 
 The smoke checks exercise non-root/read-only startup, version, health, HTTP,
 HTTPS with SAN verification, and SNI/ALPN TLS passthrough sharing the HTTPS
-port. All backends and certificates are disposable test fixtures, listening
+port. Static `/ping` readiness is followed by a bounded 15-second wait for both
+actual HTTP/HTTPS routes and the expected certificate, then fresh route and ALPN
+assertions. Persistent route or certificate failures still fail publication.
+All backends and certificates are disposable test fixtures, listening
 only on loopback. Test containers are removed on completion.
 
 The separate [Traefik workflow](.github/workflows/traefik.yml) builds and tests

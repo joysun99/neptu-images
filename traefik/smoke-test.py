@@ -93,18 +93,51 @@ def main():
                     time.sleep(0.1)
             else:
                 raise AssertionError('Traefik health startup timeout')
-            for encrypted in [False, True]:
+            def routed_get(encrypted, timeout=3):
                 if encrypted:
                     client = ssl.create_default_context(cafile=str(root / 'cert.pem'))
-                    raw = socket.create_connection(('127.0.0.1', ports[8443]), timeout=3)
-                    conn = http.client.HTTPConnection('127.0.0.1', ports[8443], timeout=3)
-                    conn.sock = client.wrap_socket(raw, server_hostname='smoke.invalid')
+                    raw = socket.create_connection(('127.0.0.1', ports[8443]), timeout=timeout)
+                    conn = http.client.HTTPConnection('127.0.0.1', ports[8443], timeout=timeout)
+                    try:
+                        conn.sock = client.wrap_socket(raw, server_hostname='smoke.invalid')
+                    except Exception:
+                        raw.close()
+                        raise
                 else:
-                    conn = http.client.HTTPConnection('127.0.0.1', ports[8080], timeout=3)
-                conn.request('GET', '/ping', headers={'Host': 'smoke.invalid'})
-                response = conn.getresponse()
-                assert response.status == 200 and response.read() == b'OK'
-                conn.close()
+                    conn = http.client.HTTPConnection('127.0.0.1', ports[8080], timeout=timeout)
+                try:
+                    conn.request('GET', '/ping', headers={'Host': 'smoke.invalid'})
+                    response = conn.getresponse()
+                    return response.status, response.read()
+                finally:
+                    conn.close()
+
+            # Static /ping can succeed before the asynchronous file provider has
+            # installed its routers and certificates. Require both actual routes
+            # within one fixed startup deadline, then perform fresh assertions.
+            route_begin = time.monotonic()
+            route_deadline = route_begin + 15
+            last_route_error = 'routes not observed'
+            startup_observations = []
+            while time.monotonic() < route_deadline:
+                try:
+                    for encrypted in [False, True]:
+                        status, body = routed_get(encrypted, timeout=1)
+                        if status != 200 or body != b'OK':
+                            raise AssertionError(f'{"https" if encrypted else "http"}: '
+                                                 f'status={status}, body={body[:160]!r}')
+                    break
+                except (OSError, AssertionError, http.client.HTTPException) as error:
+                    last_route_error = str(error)
+                    if last_route_error not in startup_observations:
+                        startup_observations.append(last_route_error)
+                    time.sleep(0.1)
+            else:
+                raise AssertionError('dynamic route startup timeout: ' + last_route_error)
+            for encrypted in [False, True]:
+                status, body = routed_get(encrypted)
+                assert status == 200 and body == b'OK', (
+                    f'{"https" if encrypted else "http"}: status={status}, body={body[:160]!r}')
             for selector in ['neptu-device-sync/1', 'neptu-device-join/1', None]:
                 client = ssl.create_default_context(cafile=str(root / 'cert.pem'))
                 # A Device selector chooses TCP passthrough; the backend negotiates HTTP/1.1.
@@ -128,6 +161,8 @@ def main():
                               'checks': ['version', 'readonly-nonroot', 'ping', 'http',
                                          'https-verified-san', 'same-port-device-sync-join-alpn-passthrough',
                                          'missing-alpn-selector-refused'],
+                              'routeReadyMillis': round((time.monotonic() - route_begin) * 1000),
+                              'startupObservations': startup_observations,
                               'status': 'passed'}))
         except Exception:
             if created:
