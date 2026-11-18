@@ -1,5 +1,11 @@
 # Neptu runtime images
 
+This is the canonical repository for **all future Neptu public image management
+and publication**, as directed on 2026-11-18. Keep image definitions, pinned inputs,
+verification and release workflows here. Deployment repositories consume the
+verified published digest; existing image package names and historical releases
+retain their identity. See [repository guidelines](AGENTS.md).
+
 Node 24.16.0 production runtimes are published at `ghcr.io/joysun99/neptu-images`.
 The shared Traefik runtime is published separately at
 `ghcr.io/joysun99/neptu-traefik`; see [Shared Traefik runtime](#shared-traefik-runtime).
