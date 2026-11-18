@@ -47,6 +47,12 @@ and repeat relevant runtime checks. Source tags identify code; deployment uses
 and verification result. A successful push alone is not production qualification.
 GHCR packages intended for unauthenticated pulls must be public.
 
+Deployment pulls for public GHCR images use `deploy/pull-public-image.py` on each
+node: an isolated empty Docker client configuration, the local Unix daemon and
+an exact reviewed repository digest. Do not reuse stored login credentials or
+relay image archives by default. Failed pulls stop preparation before service
+changes; preserve original credentials and historical transport receipts.
+
 From the repository root:
 
 ```bash
@@ -57,6 +63,14 @@ docker buildx bake -f traefik/docker-bake.hcl --load
 python3 traefik/smoke-test.py
 python3 traefik/smoke-test.py --user 1000:1000
 ```
+
+Docker and systemd deployments run the service in the foreground; external
+supervision owns process start/stop/restart. Do not add an application daemon or
+a second host process manager around Docker containers. Production containers
+use `unless-stopped`; `no` is limited to explicitly stopped maintenance/shadow
+scopes. Dependency retries default to six attempts, 1-second exponential delay
+capped at 30 seconds, then process exit; retain state/identity and last verified
+certificates. Never retry unknown writes or weaken TLS/authorization checks.
 
 Run checks relevant to the changed image. Documentation-only changes need link,
 structure and diff checks. Do not restart production services as part of image

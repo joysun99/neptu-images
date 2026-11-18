@@ -7,6 +7,7 @@ import {pathToFileURL} from 'node:url';
 import {createInterface} from 'node:readline/promises';
 import {stdin, stdout} from 'node:process';
 import {setTimeout as sleep} from 'node:timers/promises';
+import {retryDependency} from './retry.mjs';
 import * as cert from './certificates.mjs';
 import * as store from './store.mjs';
 import {need, fields, domains, hash, loadConfig} from './config.mjs';
@@ -20,12 +21,12 @@ async function client(cfg) { const c = await store.read(cfg, 'client');
   need(c.schemaVersion === 1 && c.nodeId === cfg.nodeId && c.profile === cfg.profile && tokenShape(c.token)
     && ['pending', 'active'].includes(c.phase) && hash(c.token) === c.request.credentialSHA256
     && c.invitation.serviceId === c.request.serviceId, 'client-state-invalid'); return c; }
-export async function requestJSON(cfg, url, token, body) {
+export async function requestJSON(cfg, url, token, body, options = {}) {
   const endpoint = new URL(url); need(endpoint.protocol === 'https:' && !endpoint.username && !endpoint.password, 'https-required');
   const raw = Buffer.from(JSON.stringify(body)), ca = cfg.sourceCAFile ? await cert.protectedRead(cfg.sourceCAFile, 262144) : undefined;
   return new Promise((resolve, reject) => {
     const req = https.request({hostname: endpoint.hostname, servername: endpoint.hostname, port: endpoint.port || 443,
-      path: endpoint.pathname, method: 'POST', ca, rejectUnauthorized: true, minVersion: 'TLSv1.2', agent: false,
+      path: endpoint.pathname, method: 'POST', ca, signal: options.signal, rejectUnauthorized: true, minVersion: 'TLSv1.2', agent: false,
       ...(cfg.connectAddress ? {lookup: (_name, options, done) => options.all
         ? done(null, [{address: cfg.connectAddress, family: cfg.connectAddress.includes(':') ? 6 : 4}])
         : done(null, cfg.connectAddress, cfg.connectAddress.includes(':') ? 6 : 4)} : {}),
@@ -35,15 +36,15 @@ export async function requestJSON(cfg, url, token, body) {
       res.on('data', b => { size += b.length; if (size > 1024 * 1024) res.destroy(new Error('oversized-response')); else parts.push(b); });
       res.on('error', reject); res.on('end', () => { try { resolve(JSON.parse(Buffer.concat(parts))); } catch { reject(new Error('invalid-response')); } });
     });
-    const timer = setTimeout(() => req.destroy(new Error('source-timeout')), 30000);
+    const timer = setTimeout(() => req.destroy(Object.assign(new Error('source-timeout'), {code: 'source-timeout'})), 30000);
     req.on('close', () => clearTimeout(timer)); req.on('error', reject); req.end(raw);
   });
 }
-export async function join(cfg, invitation) {
+export async function join(cfg, invitation, options = {}) {
   need(cfg.role === 'follower', 'follower-required');
   const c = await store.prepareJoin(cfg, invitation);
   if (c.phase === 'active') return {joined: true, nodeId: c.nodeId, serviceId: c.invitation.serviceId};
-  const ack = await requestJSON(cfg, c.invitation.sourceURL.replace('/certificates/', '/join/'), c.invitation.token, c.request);
+  const ack = await requestJSON(cfg, c.invitation.sourceURL.replace('/certificates/', '/join/'), c.invitation.token, c.request, options);
   const active = await store.finishJoin(cfg, ack); await renderProxy(cfg);
   return {joined: true, nodeId: active.nodeId, serviceId: active.invitation.serviceId};
 }
@@ -52,10 +53,10 @@ export async function syncOnce(cfg, options = {}) {
   if (flights.has(key)) return flights.get(key);
   const task = (async () => {
     need(cfg.role === 'follower', 'follower-required'); let c = await client(cfg);
-    if (c.phase === 'pending') { await join(cfg, c.invitation); c = await client(cfg); }
+    if (c.phase === 'pending') { await join(cfg, c.invitation, options); c = await client(cfg); }
     const policy = await store.settings(cfg), current = {...cfg, domains: policy.domains}, revision = policy.revision;
     const value = current.domains.length
-      ? await requestJSON(cfg, c.invitation.sourceURL, c.token, {domains: current.domains})
+      ? await requestJSON(cfg, c.invitation.sourceURL, c.token, {domains: current.domains}, options)
       : {schemaVersion: 1, serviceId: c.invitation.serviceId, certificates: []};
     need(value.serviceId === c.invitation.serviceId, 'wrong-leader');
     await store.locked(cfg, async () => {
@@ -159,20 +160,49 @@ export async function run(cfg) {
   await store.settings(cfg); if (cfg.role === 'leader') await store.registry(cfg);
   await cert.protectedRead(cfg.adminTokenFile, 256); await renderProxy(cfg);
   const stop = new AbortController(), server = createServer(cfg);
-  for (const name of ['SIGTERM', 'SIGINT']) process.once(name, () => { stop.abort(); server.close(); });
-  await new Promise((resolve, reject) => { server.once('error', reject); server.listen(cfg.port, cfg.listen, resolve); });
-  console.log(JSON.stringify({event: 'cert-sync-started', role: cfg.role, nodeId: cfg.nodeId}));
-  const renderer = setInterval(() => renderProxy(cfg).catch(e => console.error(JSON.stringify({event: 'proxy-render-failed', code: safeCode(e)}))), 5000);
-  renderer.unref();
-  if (cfg.role === 'leader') { server.once('close', () => clearInterval(renderer)); return; }
-  while (!stop.signal.aborted) {
-    let wait = cfg.intervalSeconds;
-    try { console.log(JSON.stringify(await syncOnce(cfg))); }
-    catch (error) { wait = cfg.retrySeconds; const value = {event: 'cert-sync-failed', code: safeCode(error), at: new Date().toISOString()};
-      await store.write(cfg, 'last-sync', value); console.error(JSON.stringify(value)); }
-    try { await sleep(wait * 1000, undefined, {signal: stop.signal}); } catch (e) { if (e.name !== 'AbortError') throw e; }
+  const shutdown = () => { stop.abort(); server.close(); };
+  for (const name of ['SIGTERM', 'SIGINT']) process.once(name, shutdown);
+  let renderer;
+  try {
+    await new Promise((resolve, reject) => { server.once('error', reject); server.listen(cfg.port, cfg.listen, resolve); });
+    console.log(JSON.stringify({event: 'cert-sync-started', role: cfg.role, nodeId: cfg.nodeId}));
+    renderer = setInterval(() => renderProxy(cfg).catch(e => console.error(JSON.stringify({event: 'proxy-render-failed', code: safeCode(e)}))), 5000);
+    renderer.unref();
+    if (cfg.role === 'leader') {
+      await new Promise(resolve => server.once('close', resolve));
+      return;
+    }
+    const policy = {attempts: cfg.retryAttempts, initialDelayMillis: cfg.retryInitialSeconds * 1000, maxDelayMillis: cfg.retrySeconds * 1000};
+    while (!stop.signal.aborted) {
+      // A new Follower must keep its Console available so an operator can join it.
+      // No invitation/identity is invented and a pending join retains its request.
+      try { await store.read(cfg, 'client'); }
+      catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+        await sleep(cfg.retryInitialSeconds * 1000, undefined, {signal: stop.signal});
+        continue;
+      }
+      const result = await retryDependency(() => syncOnce(cfg, {signal: stop.signal}), {
+        policy, signal: stop.signal,
+        onRetry: async value => {
+          const report = {event: 'cert-sync-retry', ...value, at: new Date().toISOString()};
+          await store.write(cfg, 'last-sync', report); console.error(JSON.stringify(report));
+        },
+      });
+      console.log(JSON.stringify(result));
+      await sleep(cfg.intervalSeconds * 1000, undefined, {signal: stop.signal});
+    }
+  } catch (error) {
+    if (!stop.signal.aborted) {
+      const report = {event: 'cert-sync-failed', code: safeCode(error), at: new Date().toISOString()};
+      await store.write(cfg, 'last-sync', report);
+      throw error;
+    }
+  } finally {
+    clearInterval(renderer);
+    for (const name of ['SIGTERM', 'SIGINT']) process.removeListener(name, shutdown);
+    server.close(); server.closeIdleConnections();
   }
-  clearInterval(renderer);
 }
 async function consoleMenu(cfg) {
   const reader = createInterface({input: stdin, output: stdout});

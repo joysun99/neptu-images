@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "service": "cert-sync",
+  "stage": "local-development-unpublished",
+  "sourceBaseCommit": "8e70c7c67ff73e543776b394822cc55dffa37770",
+  "sourceDirty": true,
+  "sourceFileSHA256": {
+    "app.mjs": "2973afa67e8b28c40189dda20d86eb9b75ad89458310778a5530c42d726e2e38",
+    "config.mjs": "db59cfc4d20ef3e995744813a5fecab75bece7cee437fc04bfb4fb39b13537f5",
+    "retry.mjs": "7c011af50b094da3e6e44c22090e42c571b1d12a3c7f8c286179b1bd9f617af9",
+    "Dockerfile": "add84284205ee20b1135ca9f70451c0fb4ca4a4b25a451fbf1573f196b4e5be5",
+    ".dockerignore": "cfa795392655602b5d008a92eb0f2b8d0aa901469a121d73174d8a781a645749",
+    "retry.test.mjs": "2946ef2be434be914944e7cbe4515ef469ea54426d27c7ff71cf5b61468d2dc8",
+    "smoke-test.py": "0f55245715fc09ce7fa678d2c710a7672469d8d7f3ff732b9192c16918444fa4"
+  },
+  "localImage": "neptu-cert-sync:dependency-retry-local",
+  "localImageID": "sha256:47aca56efee196e486d4ada9cd2ad9ccb8e8702c3f98cdf6186c9eceb650f12e",
+  "unitAndProtocolTestsPassed": 23,
+  "actualRuntimeRetryTestsPassed": 5,
+  "actualRuntimeTestsOverlapUnitCases": true,
+  "actualDockerTraefikChecksPassed": 18,
+  "defaultRetry": {
+    "attempts": 6,
+    "initialDelayMillis": 1000,
+    "maximumDelayMillis": 30000
+  },
+  "failureChecks": [
+    "transient-Leader-outage",
+    "finite-exhaustion-and-nonzero-exit",
+    "Docker-unless-stopped-restart",
+    "Leader-return-background-sync",
+    "last-verified-materials-retained",
+    "SIGTERM-exit-zero",
+    "manual-Docker-stop-keeps-stopped",
+    "new-unjoined-Follower-Console-keeps-available"
+  ],
+  "published": false,
+  "productionActivated": false,
+  "hostOrDaemonColdRestartQualified": false
+}

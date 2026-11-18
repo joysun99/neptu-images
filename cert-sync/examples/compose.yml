@@ -2,6 +2,7 @@
 services:
   cert-sync:
     image: ${CERT_SYNC_IMAGE:?Set a verified ghcr.io/joysun99/neptu-cert-sync@sha256 digest}
+    pull_policy: never
     user: "1000:1000"
     restart: unless-stopped
     read_only: true

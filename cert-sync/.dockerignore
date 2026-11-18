@@ -8,3 +8,5 @@
 !console.mjs
 !cert-sync
 !cert-sync.test.mjs
+!retry.mjs
+!retry.test.mjs

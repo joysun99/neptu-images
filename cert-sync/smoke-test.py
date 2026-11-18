@@ -164,6 +164,44 @@ http.createServer((q,s)=>{s.end(q.headers.host+'|'+q.url)}).listen(80,'0.0.0.0')
         def reloaded():
             actual = tls_get(secure, 'a.example.net'); assert actual != first; return actual
         wait(reloaded)
+        # Exercise Docker ownership and the bounded runtime retry loop using
+        # only this test's disposable containers/configuration.
+        follower = name + '-follower'
+        leader = name + '-leader'
+        cfg = json.loads((base / 'follower.json').read_text())
+        cfg.update(retryAttempts=3, retryInitialSeconds=1, retrySeconds=1)
+        put(base / 'follower.json', cfg)
+        saved_material = (dynamic / 'shared-certificates.yml').read_bytes()
+        saved_fingerprint = tls_get(secure, 'a.example.net')
+        command('docker', 'stop', '--time', '10', follower)
+        command('docker', 'update', '--restart', 'unless-stopped', follower)
+        command('docker', 'stop', '--time', '10', leader)
+        before_restarts = int(command('docker', 'inspect', '--format', '{{.RestartCount}}', follower))
+        command('docker', 'start', follower)
+        def restarted():
+            count = int(command('docker', 'inspect', '--format', '{{.RestartCount}}', follower))
+            assert count > before_restarts
+            return count
+        wait(restarted)
+        assert (dynamic / 'shared-certificates.yml').read_bytes() == saved_material
+        assert tls_get(secure, 'a.example.net') == saved_fingerprint
+        command('docker', 'start', leader)
+        wait(lambda: cli('leader', 'status'))
+        wait(lambda: cli('follower', 'status'))
+        # Discover the existing state filename without assuming a new store format.
+        last_paths = list((base / 'follower/state').glob('*last-sync*'))
+        assert len(last_paths) == 1
+        def background_recovered():
+            assert json.loads(last_paths[0].read_text())['event'] == 'cert-sync-complete'
+        wait(background_recovered)
+        command('docker', 'stop', '--time', '10', follower)
+        stopped = json.loads(command('docker', 'inspect', follower))[0]
+        assert stopped['State']['ExitCode'] == 0 and not stopped['State']['Running']
+        time.sleep(1)
+        still_stopped = json.loads(command('docker', 'inspect', follower))[0]
+        assert not still_stopped['State']['Running'] and still_stopped['RestartCount'] == stopped['RestartCount']
+        command('docker', 'start', follower)
+        wait(background_recovered)
         cli('leader', 'revoke', '--node', 'follower')
         old = (dynamic / 'shared-certificates.yml').read_bytes()
         try:
@@ -175,7 +213,9 @@ http.createServer((q,s)=>{s.end(q.headers.host+'|'+q.url)}).listen(80,'0.0.0.0')
         print(json.dumps({'status': 'passed', 'image': args.image, 'checks': ['actual-runtime-cli-init',
             'readonly-nonroot', 'https-token-join', 'authenticated-sync', 'http01-host-preserving-forward',
             'local-acme-bypass-with-redirect', 'transport-host-not-forwarded', 'tls-verified-san',
-            'acme-inode-replacement', 'traefik-certificate-reload', 'existing-nondefault-tls-policy', 'revocation-retains-existing-certificate']}))
+            'acme-inode-replacement', 'traefik-certificate-reload', 'existing-nondefault-tls-policy', 'revocation-retains-existing-certificate',
+            'leader-outage-bounded-exhaustion', 'docker-unless-stopped-restart', 'last-certificate-retained-during-outage',
+            'leader-recovery-background-sync', 'graceful-sigterm-exit-zero', 'manual-docker-stop-remains-stopped']}))
     finally:
         for container in reversed(containers):
             subprocess.run(['docker', 'rm', '-f', container], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

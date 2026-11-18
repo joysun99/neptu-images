@@ -20,11 +20,11 @@ export function origin(value, protocol = 'https:') { let u; try { u = new URL(va
 export function validateConfig(input) {
   fields(input, ['schemaVersion', 'role', 'nodeId', 'profile', 'domains', 'publicURL', 'stateDirectory', 'targetDirectory',
     'acmeFile', 'adminTokenFile', 'listen', 'port', 'intervalSeconds', 'retrySeconds', 'minimumValiditySeconds',
-    'healthMaxAgeSeconds', 'healthMinimumRemainingSeconds', 'sourceCAFile', 'connectAddress', 'proxy']);
+    'healthMaxAgeSeconds', 'healthMinimumRemainingSeconds', 'sourceCAFile', 'connectAddress', 'proxy', 'retryAttempts', 'retryInitialSeconds']);
   need(input.schemaVersion === 1 && ['leader', 'follower'].includes(input.role) && id(input.nodeId), 'invalid-role-or-node');
   const cfg = {profile: 'shared', domains: [], stateDirectory: '/var/lib/cert-sync', targetDirectory: '/etc/traefik/dynamic',
     acmeFile: '/run/acme/acme.json', adminTokenFile: '/run/secrets/admin-token', listen: '0.0.0.0', port: 8080,
-    intervalSeconds: 3600, retrySeconds: 30, minimumValiditySeconds: 86400, healthMaxAgeSeconds: 86400,
+    intervalSeconds: 3600, retrySeconds: 30, retryAttempts: 6, retryInitialSeconds: 1, minimumValiditySeconds: 86400, healthMaxAgeSeconds: 86400,
     healthMinimumRemainingSeconds: 604800, proxy: {type: 'traefik', backendURL: 'http://cert-sync:8080',
       resolver: 'letsencrypt', webEntryPoint: 'web', secureEntryPoint: 'websecure'}, ...input};
   need(id(cfg.profile) && isIP(cfg.listen), 'invalid-profile-or-listen'); cfg.publicURL = origin(cfg.publicURL);
@@ -32,6 +32,7 @@ export function validateConfig(input) {
   for (const key of ['stateDirectory', 'targetDirectory', 'acmeFile', 'adminTokenFile']) path(cfg[key]);
   if (cfg.sourceCAFile) path(cfg.sourceCAFile); if (cfg.connectAddress) need(isIP(cfg.connectAddress), 'invalid-connect-address');
   integer(cfg.port, 1024, 65535); integer(cfg.intervalSeconds, 60, 86400); integer(cfg.retrySeconds, 1, 3600);
+  integer(cfg.retryAttempts, 1, 20); integer(cfg.retryInitialSeconds, 1, cfg.retrySeconds);
   integer(cfg.minimumValiditySeconds, 3600, 2592000); integer(cfg.healthMaxAgeSeconds, cfg.intervalSeconds * 2, 2592000);
   integer(cfg.healthMinimumRemainingSeconds, cfg.minimumValiditySeconds, 7776000);
   fields(cfg.proxy, ['type', 'backendURL', 'resolver', 'webEntryPoint', 'secureEntryPoint', 'tlsOptions']);

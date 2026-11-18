@@ -9,6 +9,30 @@
 HTTPS Token Join／同步和 Traefik 适配。各部署的现场证据由部署仓库维护；Caddy 适配
 仍待实现和验证，不将本镜像发布等同于所有代理或自然续期的生产验收。
 
+## 运行托管与连接重试
+
+Docker中使用前台 `cert-sync run --config /etc/neptu/cert-sync.json`，主进程为PID 1，
+日志输出到stdout／stderr；Docker负责启动／停止／重启，正式Compose为 `unless-stopped`。
+systemd原生部署也以前台运行（`Type=simple`），由systemd监督，不再套应用daemon；
+本服务没有新增daemon子命令。手动 `docker stop` 后保持停止，恢复使用明确 `docker start`。
+
+已Join的Follower在启动及运行中连不上Leader时，默认最多6次尝试，失败后等待
+1、2、4、8、16秒，单次间隔上限30秒。成功后恢复正常同步间隔并重置本轮计数；耗尽后
+非零退出，由Docker／systemd重新拉起。配置项为 `retryAttempts`（1..20，默认6）、
+`retryInitialSeconds`（默认1）和既有 `retrySeconds`（默认30，现为退避上限）。
+单次HTTPS请求仍保持原30秒截止，不延长原Join／凭据／证书有效期。
+
+认证／授权、TLS身份、证书内容及本地状态错误直接失败，不能靠重试获得资格。SIGTERM／
+SIGINT中断等待及在途拉取并正常退出。新Follower尚未Join时保持Console可用等待加入，
+不生成身份或假定已同步；pending Join始终保留原请求／operationId，不能分配新请求重入网。
+失败、重试和进程重启期间保留原凭据、最后验证的证书及Traefik配置，只有完整验证成功
+才原子更新。旧证书到期后不得当作有效续期；Traefik仍按证书实际有效性服务。
+
+上述有限退避为当前工作区新实现，23项单元／协议及18项实际Docker／Traefik本地检查通过；
+尚未发布的新代码不能标记为HKG／USG已启用，现在线上仍使用原53f9387发行。下方安装
+示例的已发布32d328摘要仍属于该旧发行，不接受新增retryAttempts／retryInitialSeconds字段；
+使用新增配置前，须先部署后续验证发布的新digest，不能将新配置写给旧镜像。
+
 ## 工作方式
 
 ```mermaid
@@ -67,7 +91,8 @@ flowchart LR
 | `acmeFile` | Leader `/run/acme/acme.json`，只读挂载其父目录 |
 | `adminTokenFile` | `/run/secrets/admin-token`，本节点独立的 32 随机字节 base64url，无填充 |
 | `listen`, `port` | `0.0.0.0:8080`，仅受控容器网络可访问 |
-| `intervalSeconds`, `retrySeconds` | 正常 3600 秒，失败 30 秒；单次 HTTPS 最多 30 秒 |
+| `intervalSeconds` | 成功后的同步间隔，默认3600秒；单次HTTPS最多30秒 |
+| `retryAttempts`, `retryInitialSeconds`, `retrySeconds` | 最多6次、初始1秒、退避上限30秒；连续失败耗尽退出 |
 | `minimumValiditySeconds` | 接受新证书至少剩余 86400 秒 |
 | `healthMaxAgeSeconds` | 最后成功校验至多 86400 秒，且不得低于两倍同步间隔 |
 | `healthMinimumRemainingSeconds` | 少于 604800 秒报告不健康 |
@@ -108,6 +133,21 @@ SNI／ALPN 路由。只有 HTTP Host／路径增加 cert-sync 路由，不修改
 证书服务的 API／Console 路由从已有 443 进入内部服务，无需开放新的公网端口。
 如果已有 TCP `HostSNI(*)` 无条件接管全部 TLS，须先按实际协议调整为明确 ALPN／SNI
 选择器；不能直接覆盖原规则。现有节点改静态配置或目录挂载属于独立部署步骤。
+
+## 公共镜像拉取
+
+Leader、Follower及HKG／USG采用同一方式：在各节点的 `neptu-images` 仓库根目录，
+使用临时空白客户端配置，直接匿名拉取准确GHCR digest：
+
+```bash
+python3 deploy/pull-public-image.py \
+  ghcr.io/joysun99/neptu-cert-sync@sha256:32d328311f17c9de8b36d7d291d71422d15995c19dc03ccc649922c79cb2b1e3
+```
+
+工具不修改原登录凭据，不启动／重建服务；摘要和平台核对通过后，才使用下文同一
+`CERT_SYNC_IMAGE` 配置部署。示例Compose采用 `pull_policy: never`，避免后续启服
+重新使用旧登录信息隐式拉取。拉取失败先处理公共包访问，不切换镜像标签或默认改为
+SCP中继。完整策略见[公共镜像指南](../README.md#public-ghcr-pull-policy)。
 
 ## 安装与加入
 
@@ -181,7 +221,7 @@ Console 不提供 CA 账户导出、任意命令执行、SSH 配置或自动改 
 
 ## 失败处理与限制
 
-同步失败不会删除当前有效证书；失败按 retrySeconds 重试，健康状态按成功校验新鲜度
+同步失败不会删除当前有效证书；临时连接失败按上述有限指数退避重试，耗尽退出交给外部管理器。健康状态按成功校验新鲜度
 和剩余有效期告警。Docker healthcheck 不等于证书可从公网访问，需监测实际握手。
 Leader 不可用时 Follower 继续使用已有证书，但无法获得新证书；不自动切换签发源。
 

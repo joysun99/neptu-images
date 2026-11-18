@@ -61,10 +61,10 @@ records each registry digest; production should pin digests.
 ## Deploy independently of application archives
 
 ```bash
-docker pull ghcr.io/joysun99/neptu-images:node-24-slim
-docker pull ghcr.io/joysun99/neptu-images:node-24-ffmpeg-7.0.2
-export NEPTU_RUNTIME_IMAGE=ghcr.io/joysun99/neptu-images:node-24-slim
-export NEPTU_FFMPEG_RUNTIME_IMAGE=ghcr.io/joysun99/neptu-images:node-24-ffmpeg-7.0.2
+# Fill in the reviewed digests from the successful runtime publication.
+export NEPTU_RUNTIME_IMAGE='ghcr.io/joysun99/neptu-images@sha256:<verified-slim-digest>'
+export NEPTU_FFMPEG_RUNTIME_IMAGE='ghcr.io/joysun99/neptu-images@sha256:<verified-ffmpeg-digest>'
+python3 deploy/pull-public-image.py "$NEPTU_RUNTIME_IMAGE" "$NEPTU_FFMPEG_RUNTIME_IMAGE"
 ```
 
 Persist these settings using the deployment repository's regional configuration
@@ -74,6 +74,37 @@ Keep runtime images separate from application/dependency archives when registry
 access is available. Existing full offline archives still include runtime images;
 their installer checks exact image IDs, so do not replace or remove their image
 files by hand.
+
+### Public GHCR pull policy
+
+All nodes use the same [anonymous pull helper](deploy/pull-public-image.py),
+including HKG Leaders and USG Followers. Run it from this repository root on
+**each node**, using its local Docker daemon. It pulls directly from GHCR with a
+new empty client configuration; stored logins, credential helpers and Docker
+context/authentication environment variables are not used or modified. Only
+`ghcr.io/...@sha256:...` references are accepted. The default platform is
+`linux/amd64`; the package must publish the selected platform.
+
+```bash
+python3 deploy/pull-public-image.py \
+  ghcr.io/joysun99/neptu-cert-sync@sha256:32d328311f17c9de8b36d7d291d71422d15995c19dc03ccc649922c79cb2b1e3 \
+  ghcr.io/joysun99/neptu-traefik@sha256:f4ce119ce03dc781b7e4c2d12d26d286668d8d84fe68aea61e19d8c59d4d979f
+```
+
+The helper checks the repository digest and platform, then reports the actual
+image ID and source label. It never starts/recreates containers or changes
+Compose files. Pull and verify first; only then deploy the approved manifest
+using `pull_policy: never` or `--pull never`, under the deployment repository's
+site authorization. A pull failure stops preparation while the original service
+continues running. An initial registry HTTP 401 can be the normal anonymous
+authentication challenge; use the result of the complete pull to assess access.
+
+SSH may still use a management jump host, but image bytes flow from GHCR directly
+to the target node. Image archive relay is an explicitly reviewed fallback,
+rather than the default. Existing offline archives and receipts remain historical
+evidence. Do not move deployment references to `latest` or use a local tag as a
+substitute for a verified digest. Test the helper with
+`python3 deploy/test-pull-public-image.py`.
 
 GHCR packages must be publicly readable if servers pull without authentication.
 For a private package, configure registry authentication separately. Never place

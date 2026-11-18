@@ -4,7 +4,7 @@ LABEL org.opencontainers.image.title="Neptu cert-sync" \
       org.opencontainers.image.source="https://github.com/joysun99/neptu-images" \
       org.opencontainers.image.version="0.1.0"
 WORKDIR /opt/neptu/cert-sync
-COPY --chown=1000:1000 app.mjs certificates.mjs config.mjs store.mjs proxy.mjs console.mjs ./
+COPY --chown=1000:1000 app.mjs certificates.mjs config.mjs store.mjs proxy.mjs console.mjs retry.mjs ./
 COPY cert-sync /usr/local/bin/cert-sync
 USER 1000:1000
 EXPOSE 8080
@@ -22,6 +22,6 @@ RUN mkdir -p /etc/ssl/certs \
  && apt-get update --error-on=any \
  && apt-get install -y --no-install-recommends ca-certificates openssl \
  && rm -rf /var/lib/apt/lists/*
-COPY --chown=1000:1000 cert-sync.test.mjs ./
+COPY --chown=1000:1000 cert-sync.test.mjs retry.test.mjs ./
 USER 1000:1000
-ENTRYPOINT ["node","--test","/opt/neptu/cert-sync/cert-sync.test.mjs"]
+ENTRYPOINT ["node","--test","/opt/neptu/cert-sync/cert-sync.test.mjs","/opt/neptu/cert-sync/retry.test.mjs"]
