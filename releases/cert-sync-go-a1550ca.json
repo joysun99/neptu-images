@@ -1,0 +1,84 @@
+{
+  "profile": "neptu-cert-sync-go-publication-v1",
+  "service": "Global Cert Sync",
+  "version": "0.1.0-gcs.go.rc.1",
+  "platform": "linux/amd64",
+  "image": "ghcr.io/joysun99/neptu-cert-sync@sha256:2f0c6cb8a3d053853572e00945cf02869d2a6878eae3684126132b6f32534185",
+  "imageID": "sha256:2f0c6cb8a3d053853572e00945cf02869d2a6878eae3684126132b6f32534185",
+  "applicationSourceCommit": "a1550ca71392ed7c46cc4ef4bb441fa5ebe719aa",
+  "sourceTree": "0cc1e464566da28514b803707a0429123b8368ef8f34fcdffda9acbfadbe4007",
+  "sourceTreeAlgorithm": "sha256-git-ls-tree-rz-full-tree",
+  "recipeCommit": "842eafcd6d77b10d27da66f09c35ecf883a69e77",
+  "binarySHA256": "519c7bb9be8920b462f82810942a4d7ac554236f29e2a747f02aabac8430f2c3",
+  "binaryBytes": 8626336,
+  "candidateManifestSHA256": "8a4b7098573bb896206203f4411076e7dcbf04e3a508957ae6b9b26474df3fc0",
+  "publicInputURL": "https://github.com/joysun99/neptu-images/releases/download/cert-sync-input-a1550ca/gds-cert-linux-amd64",
+  "workflow": "https://github.com/joysun99/neptu-images/actions/runs/44274522492",
+  "verificationWorkflow": "https://github.com/joysun99/neptu-images/actions/runs/44274377927",
+  "ciPublicationAndAnonymousPullback": "passed",
+  "localAnonymousPullback": "passed",
+  "publishedImageVerification": {
+    "status": "passed",
+    "image": "ghcr.io/joysun99/neptu-cert-sync@sha256:2f0c6cb8a3d053853572e00945cf02869d2a6878eae3684126132b6f32534185",
+    "imageID": "sha256:2f0c6cb8a3d053853572e00945cf02869d2a6878eae3684126132b6f32534185",
+    "sourceCommit": "a1550ca71392ed7c46cc4ef4bb441fa5ebe719aa",
+    "recipeCommit": "842eafcd6d77b10d27da66f09c35ecf883a69e77",
+    "binarySHA256": "519c7bb9be8920b462f82810942a4d7ac554236f29e2a747f02aabac8430f2c3",
+    "checks": [
+      "static-exact-cert-only-binary",
+      "source-tree-version-and-labels",
+      "two-nonroot-users",
+      "public-ca",
+      "no-go-node-source-or-data",
+      "foreground-json-healthcheck",
+      "legacy-binary-entry",
+      "readonly-no-cap-network-none",
+      "original-identity-stop-start",
+      "unless-stopped-manual-stop"
+    ],
+    "production": false
+  },
+  "isolatedNodeGoNodeHandoff": {
+    "status": "passed",
+    "sequence": [
+      {
+        "implementation": "node",
+        "cachedCertificateHealthy": true,
+        "activeClientRetained": true
+      },
+      {
+        "implementation": "go",
+        "cachedCertificateHealthy": true,
+        "activeClientRetained": true
+      },
+      {
+        "implementation": "node",
+        "cachedCertificateHealthy": true,
+        "activeClientRetained": true
+      }
+    ],
+    "protectedFileCount": 5,
+    "oldImage": "ghcr.io/joysun99/neptu-cert-sync@sha256:c2b2372e63d5c44500a4fa3af8498bc5892c4825b97fae812ee188ee4cfc88fa",
+    "newImage": "ghcr.io/joysun99/neptu-cert-sync@sha256:2f0c6cb8a3d053853572e00945cf02869d2a6878eae3684126132b6f32534185",
+    "upstreamConnectedQualified": false,
+    "network": "none",
+    "productionMaterialUsed": false,
+    "unknownIntentRollbackAllowed": false
+  },
+  "privateGoSourcePublished": false,
+  "productionMaterialUsed": false,
+  "productionChangesPerformed": false,
+  "productionAdoptionQualified": false,
+  "defaultUID": "1000:1000",
+  "capabilityProfile": "gds-global-cert-sync-capabilities-v5",
+  "licenseFileSHA256": {
+    "licenses/bitset.txt": "409ae7da5df143584d1ae1e94bd0f1d5b3b2d134d1e354cf3160cdbf263849d1",
+    "licenses/go.txt": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+    "licenses/json-canonicalization.txt": "6821faaddedf2d78c95bb6d98b127e9e616097afd2f6bcc34389f000d13ab12d",
+    "licenses/whatwg-url.txt": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "licenses/x-net-patents.txt": "96f408bfae65bf137fc2525d3ecb030271c50c1e90799f87abf8846d8dd505cc",
+    "licenses/x-net.txt": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+    "licenses/x-text-patents.txt": "96f408bfae65bf137fc2525d3ecb030271c50c1e90799f87abf8846d8dd505cc",
+    "licenses/x-text.txt": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad"
+  }
+}
