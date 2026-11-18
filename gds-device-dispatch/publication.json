@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "service": "gds-device-dispatch",
+  "stage": "published-and-pullback-verified",
+  "applicationSourceCommit": "1ed7419076a5a4c901e8512eafe493711ff91e50",
+  "applicationSourceTree": "40ac919e0a30d67bee3c25937a5b04d57df4e8ab99f79f3ac6e79f7a0e7e3da4",
+  "recipeCommit": "436eedfc19b15ae3381cf510ca76bc9688420536",
+  "version": "0.1.0-t3.dependency-retry.rc.1",
+  "image": "ghcr.io/joysun99/neptu-images@sha256:74bbe36be5c9ad0cabc52e27737ed15d0cd4d4de6b17c2a313d366ee87ad41ab",
+  "platform": "linux/amd64",
+  "binarySHA256": "4a36498c8debb7d7cbc4d9ef849caf0adf685aaca7e3d635af44cd7dab04229b",
+  "nativeManifestSHA256": "119846828fd111f0cbac5a6d3e6fd0eba7359f2eb455a92b429e8dccf80d2783",
+  "publicationRun": "https://github.com/joysun99/neptu-images/actions/runs/44246602755",
+  "inputTestsPassed": 4,
+  "actualPublishedImageChecksPassed": 7,
+  "privateApplicationSourcePublished": false,
+  "publicBinaryInputExplicitlyAuthorized": true,
+  "siteDeploymentCompleted": false
+}

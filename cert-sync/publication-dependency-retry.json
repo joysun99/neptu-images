@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "service": "cert-sync",
+  "stage": "published-and-pullback-verified",
+  "sourceCommit": "dbf849d08dd7798a9858c337eb462341806f22ef",
+  "image": "ghcr.io/joysun99/neptu-cert-sync@sha256:c2b2372e63d5c44500a4fa3af8498bc5892c4825b97fae812ee188ee4cfc88fa",
+  "platform": "linux/amd64",
+  "publicationRun": "https://github.com/joysun99/neptu-images/actions/runs/44246432106",
+  "unitAndProtocolTestsPassed": 24,
+  "actualPublishedDockerTraefikChecksPassed": 19,
+  "failedPublishedPredecessor": {
+    "source": "9f283319ee2cec4204c47fb25c3d9a32f1ca6d2a",
+    "image": "ghcr.io/joysun99/neptu-cert-sync@sha256:fe94abf5a816fbaae3da77ef786027bcd5b9bc3679ac0b27b992a891f280a676",
+    "postPublicationCheckPassed": false,
+    "deployed": false
+  },
+  "siteDeploymentCompleted": false,
+  "futureImplementation": {
+    "language": "Go",
+    "sourceRepositoryVisibility": "private",
+    "runtimeImageVisibility": "public",
+    "imageDefinitionAndPublicationOwner": "neptu-images",
+    "implemented": false,
+    "currentNodeSourceOrImageMadePrivate": false
+  }
+}

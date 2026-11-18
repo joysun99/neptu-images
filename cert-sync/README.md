@@ -286,3 +286,13 @@ callback. An admitted callback is never repeated; existing locks are never
 removed or stolen. Exhaustion exits for Docker supervision. Interactive CLI
 commands retain their explicit lock refusal. TLS, authorization, state and
 unknown write failures retain their original refusal behavior.
+
+## Confirmed implementation follow-up
+
+After the current verified Node rollout, cert-sync will be replaced with Go.
+That application's source will live in a private repository; this public image
+repository will retain the recipe, reviewed binary input, licenses, verification
+and publication evidence. The Go replacement has not been implemented. It must
+retain existing configuration, identity, active membership and Traefik behavior.
+The current Node implementation is already public, including JavaScript files
+inside its public image; this follow-up does not conceal or revoke that history.
