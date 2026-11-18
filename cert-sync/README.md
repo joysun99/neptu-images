@@ -276,3 +276,13 @@ Public，也不复用旧包作为新公共镜像。原始参考与新实现边�
 
 历史验证 JSON 的摘要分别绑定 `8417f0a`／`53f9387` 当时的源字节；后续指南更新
 不改写这些历史记录。运行交付引用见[准确发行回执](../releases/cert-sync-53f9387.json)。
+
+## Runtime writer contention
+
+Foreground startup and background synchronization use the configured finite
+retry policy when another writer temporarily holds an admission lock. Only
+lock-directory acquisition is retried, before owner creation or any write
+callback. An admitted callback is never repeated; existing locks are never
+removed or stolen. Exhaustion exits for Docker supervision. Interactive CLI
+commands retain their explicit lock refusal. TLS, authorization, state and
+unknown write failures retain their original refusal behavior.

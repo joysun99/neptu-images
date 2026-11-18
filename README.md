@@ -38,6 +38,14 @@ find the installed executable and skip its binary download. No global
 `ffmpeg-static` npm package is installed. `FFMPEG_BINARY_SHA256` also supports the
 application's full-release integrity validator.
 
+## GDS Device Dispatch
+
+The [GDS Device Dispatch family](gds-device-dispatch/README.md) packages an
+explicitly reviewed static Go binary without publishing private application
+source. It uses this repository's existing public package with isolated
+`gds-device-dispatch-git-*` tags. Source and recipe commits are recorded
+separately; production consumes the verified digest through its own rollout.
+
 ## Build and validate
 
 ```bash
