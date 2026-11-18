@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp, readFile, writeFile, chmod, rm, mkdir, unlink, symlink, link} from 'node:fs/promises';
+import {mkdtemp, readFile, writeFile, chmod, rm, mkdir, unlink, symlink, link, stat} from 'node:fs/promises';
 import {tmpdir, userInfo} from 'node:os';
 import {join} from 'node:path';
 import {execFileSync, spawn} from 'node:child_process';
@@ -11,7 +11,7 @@ import {createHash,randomBytes} from 'node:crypto';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {pathToFileURL} from 'node:url';
 import {validateConfig, loadConfig} from './config.mjs';
-import {validateBundle, selectAcmeCertificates, publishBundle, health, protectedRead} from './certificates.mjs';
+import {validateBundle, selectAcmeCertificates, publishBundle, health, protectedRead, withLock} from './certificates.mjs';
 import * as store from './store.mjs';
 import {createServer, join as joinLeader, syncOnce, state, requestJSON} from './app.mjs';
 import {traefikRoutes, renderProxy} from './proxy.mjs';
@@ -283,3 +283,20 @@ test('Traefik adapter preserves an explicitly selected existing TLS policy on ev
   for (const router of Object.values(value.http.routers)) assert.equal(router.tls.options, 'existing-node-policy');
   assert.throws(() => config({proxy: {tlsOptions: 'bad`injection'}}));
 });
+
+
+test('runtime lock admission waits boundedly without stealing or repeating callbacks', () => temporary(async (dir, cfg) => {
+  const lock = join(dir, '.shared-sync.lock'); await mkdir(lock, {mode: 0o700});
+  let calls = 0; const waits = [];
+  const runtime = {...cfg, writerRetry: {policy: {attempts: 3, initialDelayMillis: 1, maxDelayMillis: 2},
+    wait: async ms => { waits.push(ms); assert.equal(calls, 0); if (waits.length === 2) await rm(lock, {recursive: true}); }}};
+  await withLock(runtime, async () => { calls++; });
+  assert.equal(calls, 1); assert.deepEqual(waits, [1, 2]);
+  // A callback failure is never replayed, including an inner lock error.
+  await assert.rejects(withLock(runtime, async () => { calls++; throw Object.assign(new Error('inner'), {code: 'writer-lock-exists'}); }), {code: 'writer-lock-exists'});
+  assert.equal(calls, 2);
+  await mkdir(lock, {mode: 0o700});
+  const exhausted = {...runtime, writerRetry: {...runtime.writerRetry, wait: async () => {}}};
+  await assert.rejects(withLock(exhausted, () => assert.fail('locked callback ran')), {code: 'dependency-retries-exhausted', attempts: 3});
+  assert.equal((await stat(lock)).isDirectory(), true);
+}));

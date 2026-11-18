@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import shutil
 import ssl
+import sys
 import subprocess
 import tempfile
 import time
@@ -79,7 +80,7 @@ def main():
                 data = b''
                 while part := connection.recv(65536):
                     data += part
-        assert b'200 OK' in data and expected in data
+        assert b'200 OK' in data and expected in data, data[:120]
         return hashlib.sha256(certificate).hexdigest()
     try:
         openssl('req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', str(base / 'ca.key'),
@@ -121,7 +122,14 @@ http.createServer((q,s)=>{s.end(q.headers.host+'|'+q.url)}).listen(80,'0.0.0.0')
                 '--security-opt', 'no-new-privileges', '--mount', f'type=bind,src={base},dst=/fixtures',
                 '-e', 'NODE_EXTRA_CA_CERTS=/fixtures/ca.pem', args.image, 'run', '--config', '/fixtures/' + role + '.json')
             containers.append(container)
-        service('leader'); service('follower')
+        service('leader')
+        # Simulate another legitimate CLI writer holding admission during startup.
+        startup_lock = base / 'follower/state/.state-shared-sync.lock'
+        startup_lock.mkdir(mode=0o700)
+        service('follower')
+        time.sleep(1.2)
+        assert startup_lock.is_dir(), 'runtime stole an existing writer lock'
+        startup_lock.rmdir()
         gateway = name + '-gateway'
         command('docker', 'run', '-d', '--name', gateway, '--network', name, '--network-alias', 'leader.example.net',
                 '--user', uid, '--read-only', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges',
@@ -210,12 +218,19 @@ http.createServer((q,s)=>{s.end(q.headers.host+'|'+q.url)}).listen(80,'0.0.0.0')
             pass
         assert (dynamic / 'shared-certificates.yml').read_bytes() == old
         assert tls_get(secure, 'a.example.net') != first
-        print(json.dumps({'status': 'passed', 'image': args.image, 'checks': ['actual-runtime-cli-init',
+        print(json.dumps({'status': 'passed', 'image': args.image, 'checks': ['actual-runtime-cli-init', 'startup-writer-lock-backoff',
             'readonly-nonroot', 'https-token-join', 'authenticated-sync', 'http01-host-preserving-forward',
             'local-acme-bypass-with-redirect', 'transport-host-not-forwarded', 'tls-verified-san',
             'acme-inode-replacement', 'traefik-certificate-reload', 'existing-nondefault-tls-policy', 'revocation-retains-existing-certificate',
             'leader-outage-bounded-exhaustion', 'docker-unless-stopped-restart', 'last-certificate-retained-during-outage',
             'leader-recovery-background-sync', 'graceful-sigterm-exit-zero', 'manual-docker-stop-remains-stopped']}))
+    except BaseException:
+        # Owned synthetic fixtures only; never dump state, tokens or PEM files.
+        for container in containers:
+            diagnostic = subprocess.run(['docker', 'logs', '--tail', '30', container], text=True,
+                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            print(json.dumps({'fixture': container, 'runtimeLog': diagnostic.stdout}), file=sys.stderr)
+        raise
     finally:
         for container in reversed(containers):
             subprocess.run(['docker', 'rm', '-f', container], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

@@ -9,7 +9,7 @@ export const file = (cfg, name) => join(cfg.stateDirectory, cfg.profile + '-' + 
 export async function read(cfg, name) { return JSON.parse(await protectedRead(file(cfg, name), 2 * 1024 * 1024)); }
 export async function optional(cfg, name) { try { return await read(cfg, name); } catch (e) { if (e.code === 'ENOENT') return undefined; throw e; } }
 export async function write(cfg, name, value) { await atomicWrite(file(cfg, name), JSON.stringify(value) + '\n'); }
-export const locked = (cfg, callback) => withLock({targetDirectory: cfg.stateDirectory, profile: 'state-' + cfg.profile}, callback);
+export const locked = (cfg, callback) => withLock({targetDirectory: cfg.stateDirectory, profile: 'state-' + cfg.profile, writerRetry: cfg.writerRetry}, callback);
 export async function settings(cfg) { const s = await read(cfg, 'settings');
   need(s.schemaVersion === 1 && s.role === cfg.role && s.nodeId === cfg.nodeId && s.profile === cfg.profile
     && Number.isSafeInteger(s.revision), 'settings-scope-differs'); domains(s.domains); return s; }

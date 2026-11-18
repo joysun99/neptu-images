@@ -1,3 +1,4 @@
+import {retryDependency} from './retry.mjs';
 import {X509Certificate, createPrivateKey, createHash, randomUUID} from 'node:crypto';
 import {getCACertificates} from 'node:tls';
 const rootCertificates = getCACertificates('default');
@@ -112,7 +113,13 @@ async function currentBundle(cfg, options) {
 }
 export async function withLock(cfg, callback) {
   const lock = join(cfg.targetDirectory, '.' + cfg.profile + '-sync.lock');
-  try { await mkdir(lock, {mode: 0o700}); } catch (e) { if (e.code === 'EEXIST') fail('writer-lock-exists'); throw e; }
+  const acquire = async () => {
+    try { await mkdir(lock, {mode: 0o700}); } catch (e) { if (e.code === 'EEXIST') fail('writer-lock-exists'); throw e; }
+  };
+  // Only runtime admission waits. No owner creation or callback has happened;
+  // never repeat publication after it starts, or remove another writer's lock.
+  if (cfg.writerRetry) await retryDependency(acquire, {...cfg.writerRetry, retryable: e => e.code === 'writer-lock-exists'});
+  else await acquire();
   const token = randomUUID(); await atomicWrite(join(lock, 'owner'), token);
   try { return await callback(); }
   finally { required(await protectedRead(join(lock, 'owner')) === token, 'writer-lock-owner-differs');

@@ -157,22 +157,24 @@ export function createServer(cfg, options = {}) {
   server.maxConnections = 32; server.keepAliveTimeout = 1000; return server;
 }
 export async function run(cfg) {
-  await store.settings(cfg); if (cfg.role === 'leader') await store.registry(cfg);
-  await cert.protectedRead(cfg.adminTokenFile, 256); await renderProxy(cfg);
   const stop = new AbortController(), server = createServer(cfg);
   const shutdown = () => { stop.abort(); server.close(); };
   for (const name of ['SIGTERM', 'SIGINT']) process.once(name, shutdown);
   let renderer;
+  const policy = {attempts: cfg.retryAttempts, initialDelayMillis: cfg.retryInitialSeconds * 1000, maxDelayMillis: cfg.retrySeconds * 1000};
+  cfg = {...cfg, writerRetry: {policy, signal: stop.signal,
+    onRetry: value => console.error(JSON.stringify({event: 'cert-sync-writer-retry', ...value}))}};
   try {
+    await store.settings(cfg); if (cfg.role === 'leader') await store.registry(cfg);
+    await cert.protectedRead(cfg.adminTokenFile, 256); await renderProxy(cfg);
     await new Promise((resolve, reject) => { server.once('error', reject); server.listen(cfg.port, cfg.listen, resolve); });
     console.log(JSON.stringify({event: 'cert-sync-started', role: cfg.role, nodeId: cfg.nodeId}));
-    renderer = setInterval(() => renderProxy(cfg).catch(e => console.error(JSON.stringify({event: 'proxy-render-failed', code: safeCode(e)}))), 5000);
+    renderer = setInterval(() => renderProxy({...cfg, writerRetry: undefined}).catch(e => console.error(JSON.stringify({event: 'proxy-render-failed', code: safeCode(e)}))), 5000);
     renderer.unref();
     if (cfg.role === 'leader') {
       await new Promise(resolve => server.once('close', resolve));
       return;
     }
-    const policy = {attempts: cfg.retryAttempts, initialDelayMillis: cfg.retryInitialSeconds * 1000, maxDelayMillis: cfg.retrySeconds * 1000};
     while (!stop.signal.aborted) {
       // A new Follower must keep its Console available so an operator can join it.
       // No invitation/identity is invented and a pending join retains its request.

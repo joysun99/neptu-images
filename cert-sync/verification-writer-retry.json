@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "service": "cert-sync",
+  "stage": "local-development-before-new-publication",
+  "sourceFileSHA256": {
+    "app.mjs": "971fcaa9927bd55f7dd1028cffcfe6df45f6a3f45b5a16e284d5e05a539aee0e",
+    "certificates.mjs": "0a926d98a7a254d78490be92bd052e1111234678b4136126425cb90edd1cd29f",
+    "store.mjs": "82e14537a0f5dea162379011a3550c84d8102bec18da88fce518be691a595378",
+    "retry.mjs": "dfae48fd68fa64980a0e021ab613e04591ba08d45340719e6b5bf43d35fd5551",
+    "cert-sync.test.mjs": "6687483ed8e5ea112c07ae085d09039ba4c6e2e547634326d8a4293a91946219",
+    "smoke-test.py": "caf2e46025a102cc0571e52fc80d9b895e15e93a92b94b91358401201d9d9974"
+  },
+  "supersededPublishedCandidate": {
+    "sourceCommit": "9f283319ee2cec4204c47fb25c3d9a32f1ca6d2a",
+    "digest": "sha256:fe94abf5a816fbaae3da77ef786027bcd5b9bc3679ac0b27b992a891f280a676",
+    "publicationRun": "https://github.com/joysun99/neptu-images/actions/runs/44244859881",
+    "postPublicationVerification": "failed-Follower-Console",
+    "productionQualified": false
+  },
+  "deterministicRegression": {
+    "originalImageExited": "writer-lock-exists",
+    "newImageWaitsBeforeAdmission": true,
+    "lockNeverStolen": true,
+    "callbackNeverRetried": true,
+    "orphanLockExhaustionRetainsLock": true
+  },
+  "unitAndProtocolTestsPassed": 24,
+  "actualDockerTraefikChecksPassed": 19,
+  "productionActivated": false,
+  "localImageID": "sha256:4ed9513b1b5f151a2d3badb45a8c389f3328499589629c77ed50c4acef05af08"
+}

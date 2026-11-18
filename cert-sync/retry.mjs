@@ -12,14 +12,14 @@ export function connectionUnavailable(error) {
   return ['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'EHOSTUNREACH', 'ENETUNREACH', 'EAI_AGAIN',
     'EPIPE', 'source-timeout', 'source-408', 'source-429', 'source-502', 'source-503', 'source-504'].includes(error?.code);
 }
-export async function retryDependency(operation, {policy = defaultRetry, signal, onRetry = () => {}, wait = sleep} = {}) {
+export async function retryDependency(operation, {policy = defaultRetry, signal, onRetry = () => {}, wait = sleep, retryable = connectionUnavailable} = {}) {
   validateRetry(policy);
   for (let attempt = 1; attempt <= policy.attempts; attempt++) {
     signal?.throwIfAborted();
     try { return await operation(); }
     catch (error) {
       signal?.throwIfAborted();
-      if (!connectionUnavailable(error)) throw error;
+      if (!retryable(error)) throw error;
       if (attempt === policy.attempts) throw Object.assign(new Error('dependency-retries-exhausted'),
         {code: 'dependency-retries-exhausted', attempts: attempt, cause: error});
       const delayMillis = Math.min(policy.maxDelayMillis, policy.initialDelayMillis * 2 ** (attempt - 1));
