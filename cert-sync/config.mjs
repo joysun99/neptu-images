@@ -34,10 +34,11 @@ export function validateConfig(input) {
   integer(cfg.port, 1024, 65535); integer(cfg.intervalSeconds, 60, 86400); integer(cfg.retrySeconds, 1, 3600);
   integer(cfg.minimumValiditySeconds, 3600, 2592000); integer(cfg.healthMaxAgeSeconds, cfg.intervalSeconds * 2, 2592000);
   integer(cfg.healthMinimumRemainingSeconds, cfg.minimumValiditySeconds, 7776000);
-  fields(cfg.proxy, ['type', 'backendURL', 'resolver', 'webEntryPoint', 'secureEntryPoint']);
+  fields(cfg.proxy, ['type', 'backendURL', 'resolver', 'webEntryPoint', 'secureEntryPoint', 'tlsOptions']);
   cfg.proxy = {type: 'traefik', backendURL: 'http://cert-sync:8080', resolver: 'letsencrypt', webEntryPoint: 'web', secureEntryPoint: 'websecure', ...cfg.proxy};
   need(['traefik', 'files'].includes(cfg.proxy.type), 'unsupported-proxy');
   const backend = new URL(cfg.proxy.backendURL); need(backend.protocol === 'http:' && backend.pathname === '/' && !backend.username && !backend.password && !backend.search && !backend.hash, 'invalid-backend');
+  if (cfg.proxy.tlsOptions !== undefined) need(id(cfg.proxy.tlsOptions), 'invalid-tls-options');
   for (const k of ['resolver', 'webEntryPoint', 'secureEntryPoint']) need(id(cfg.proxy[k]), 'invalid-proxy-name');
   return cfg;
 }

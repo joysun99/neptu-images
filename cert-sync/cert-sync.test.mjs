@@ -276,3 +276,10 @@ test('domain removal and readdition retain per-domain expiry floors', () => temp
   await publishBundle({schemaVersion: 1, certificates: [b]}, reduced, options);
   await assert.rejects(publishBundle(bundle, cfg, options), /older-certificate/);
 }));
+
+test('Traefik adapter preserves an explicitly selected existing TLS policy on every generated TLS router', () => {
+  const cfg = config({role: 'leader', proxy: {tlsOptions: 'existing-node-policy'}});
+  const value = traefikRoutes(cfg, {domains: cfg.domains});
+  for (const router of Object.values(value.http.routers)) assert.equal(router.tls.options, 'existing-node-policy');
+  assert.throws(() => config({proxy: {tlsOptions: 'bad`injection'}}));
+});

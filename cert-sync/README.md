@@ -71,6 +71,7 @@ flowchart LR
 | `healthMaxAgeSeconds` | 最后成功校验至多 86400 秒，且不得低于两倍同步间隔 |
 | `healthMinimumRemainingSeconds` | 少于 604800 秒报告不健康 |
 | `proxy` | `type: traefik`，resolver／entryPoint 名称与现有 Traefik 一致 |
+| `proxy.tlsOptions` | 可选，沿用同一 hostname 已有的命名 TLS 策略，如 `clean-global-node`；不填则使用 Traefik 默认策略 |
 | `sourceCAFile` | 可选私有 CA 文件，仅用于同步 HTTPS 的 TLS 信任；通常省略使用系统信任 |
 | `connectAddress` | 可选固定源 IP，TLS 仍校验 sourceURL hostname；通常省略使用 DNS |
 
@@ -84,6 +85,8 @@ UID。示例统一 UID/GID 1000。拒绝符号链接、硬链接和不安全文�
 SNI／ALPN 路由。只有 HTTP Host／路径增加 cert-sync 路由，不修改 Device TCP 协议。
 如原 Traefik 使用内部 8080／8443 映射公网 80／443，保留原地址；入口名称按配置匹配。
 
+- 同一 hostname 的现有 HTTP TLS router 若配置了命名 TLS options，必须在 `proxy.tlsOptions`
+  显式填写同一名称。不能把 cert-sync 默认 TLS 策略与同 SNI 的现有命名策略混用。
 - Leader 的 resolver 使用 HTTP-01，存储在独立的 ACME 目录；该目录给 Traefik 读写，
   给 cert-sync 只读。**挂载父目录，不能只绑定 acme.json 文件**，否则原子换文件后
   长期进程可能一直读取旧 inode。不要为方便而挂载整个包含其他秘密的生产 secrets 目录。
@@ -224,3 +227,7 @@ python3 cert-sync/smoke-test.py
 发布 `git-<full-sha>`，拉回准确 digest 复验实际镜像。生产只用验证的 digest。
 新 GHCR 包应设为 Public 以支持匿名拉取。旧私有 mirror 的基础层含应用代码，不改为
 Public，也不复用旧包作为新公共镜像。原始参考与新实现边界见 [provenance](provenance.json)。
+
+2026-11-18 部署预检补充：新增 `proxy.tlsOptions` 保留现有命名 TLS 策略。初次
+[17 项验证记录](verification.json)对应原始提交 `8417f0a`，其摘要保留历史字节；
+修订候选另有 [TLS 策略验证](verification-tls-options.json)，不改写旧结果。

@@ -185,7 +185,11 @@ no node-to-node SSH authorization. Caddy adapters remain future work. Source,
 Dockerfile and a separate opt-in publication workflow live here; no private
 application layer or production certificate material is included.
 
-The new runtime is locally verified and **unpublished**. Existing deployed
+The [first publication](releases/cert-sync-8417f0a.json) from `8417f0a` passed
+registry pullback and anonymous manifest verification. Deployment preflight found
+that existing SNI routes use a named TLS policy; the follow-up adds explicit
+`proxy.tlsOptions` and [separate verification](cert-sync/verification-tls-options.json).
+The deployment candidate must use the published follow-up digest. Existing deployed
 `neptu-global-dispatch-certificate-mirror` images and historical names remain
 unchanged. Do not make the old application-based package public or treat the
 new service as a drop-in replacement. Deployments need an exact published digest

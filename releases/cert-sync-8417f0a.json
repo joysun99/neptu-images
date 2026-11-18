@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "family": "cert-sync",
+  "sourceCommit": "8417f0a8c565bb66b103fb826f569c2abab72576",
+  "CI": "https://github.com/joysun99/neptu-images/actions/runs/44221872784",
+  "image": "ghcr.io/joysun99/neptu-cert-sync@sha256:7371a6bdf643019b47980aeac5542c57b1266cde860af0f07ab3abd6c9dcb36c",
+  "platform": "linux/amd64",
+  "anonymousTokenHTTP": 200,
+  "anonymousManifestHTTP": 200,
+  "exactManifestSHA256Verified": true,
+  "runtimeManifests": [
+    {
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "digest": "sha256:41eba638d3be0689293a90fa99ff682c95e0d86f118d4bfe9d64d68680dea8ea",
+      "size": 1810,
+      "platform": {
+        "architecture": "amd64",
+        "os": "linux"
+      }
+    }
+  ],
+  "CIUnitAndProtocolTestsPassed": 17,
+  "CIIntegrationChecksPassed": 11,
+  "publishedDigestPullbackAndIntegrationPassed": true,
+  "productionQualified": false,
+  "supersession": "Published baseline; deployment preflight requires optional existing TLS policy configuration in the next source candidate."
+}

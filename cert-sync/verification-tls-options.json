@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "stage": "local-development-unpublished-tls-policy-revision",
+  "sourceParentCommit": "8417f0a8c565bb66b103fb826f569c2abab72576",
+  "reason": "Production routers for the same SNI use clean-global-node. Explicit proxy.tlsOptions preserves that policy.",
+  "unitAndProtocolTests": {
+    "passed": 18,
+    "failed": 0,
+    "skipped": 0,
+    "runtimeUser": "1000:1000",
+    "readOnlyRoot": true,
+    "capDrop": "ALL"
+  },
+  "integration": {
+    "status": "passed",
+    "image": "ghcr.io/joysun99/neptu-cert-sync:git-local",
+    "checks": [
+      "actual-runtime-cli-init",
+      "readonly-nonroot",
+      "https-token-join",
+      "authenticated-sync",
+      "http01-host-preserving-forward",
+      "local-acme-bypass-with-redirect",
+      "transport-host-not-forwarded",
+      "tls-verified-san",
+      "acme-inode-replacement",
+      "traefik-certificate-reload",
+      "existing-nondefault-tls-policy",
+      "revocation-retains-existing-certificate"
+    ]
+  },
+  "productionChanged": false,
+  "sha256": {
+    "cert-sync/config.mjs": "f23ffa204e6d2b692504cd64e63092b990a52a8820388f941fc52eb88ef162d3",
+    "cert-sync/proxy.mjs": "3cbbe72b1d2fbe51776c3b12f78f71f935c54f50e0891e6d00cb2114c4db58db",
+    "cert-sync/cert-sync.test.mjs": "f4cbc46343c13ea932c6c8551631d7d8c6b5b610654810722cc8021438de3e53",
+    "cert-sync/smoke-test.py": "d56dad2757bba1944269e7df8f3aa99c9b426c499abe15c741937e844e2aae07",
+    "cert-sync/README.md": "ea4cbadf27cea884ee2b68659818f42d47fec96c8609bb2d0e16f40d521edc1a"
+  }
+}

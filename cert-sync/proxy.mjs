@@ -5,14 +5,15 @@ import {settings, optional, locked} from './store.mjs';
 export function traefikRoutes(cfg, policy, client) {
   const name = 'cert-sync-' + cfg.profile, routers = {}, services = {};
   const host = new URL(cfg.publicURL).hostname;
+  const tls = {...(cfg.proxy.tlsOptions ? {options: cfg.proxy.tlsOptions} : {}), certResolver: cfg.proxy.resolver};
   services[name] = {loadBalancer: {servers: [{url: cfg.proxy.backendURL}], passHostHeader: true}};
   routers[name + '-console'] = {entryPoints: [cfg.proxy.secureEntryPoint],
     rule: 'Host(`' + host + '`) && (PathPrefix(`/console`) || PathPrefix(`/admin/`) || PathPrefix(`/v1/`) || Path(`/healthz`))',
-    priority: 500, service: name, tls: {certResolver: cfg.proxy.resolver}};
+    priority: 500, service: name, tls};
   if (cfg.role === 'leader') for (const domain of policy.domains) {
     routers[name + '-issue-' + hash(domain).slice(0, 12)] = {entryPoints: [cfg.proxy.secureEntryPoint],
       rule: 'Host(`' + domain + '`) && Path(`/.well-known/neptu/certificate-request`)',
-      priority: 1, service: 'noop@internal', tls: {certResolver: cfg.proxy.resolver,
+      priority: 1, service: 'noop@internal', tls: {...tls,
         domains: [{main: domain}]}};
   }
   if (cfg.role === 'follower' && client?.phase === 'active' && policy.domains.length) {

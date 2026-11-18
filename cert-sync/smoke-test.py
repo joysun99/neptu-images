@@ -69,17 +69,17 @@ def main():
         result = response.status, response.read()
         connection.close()
         return result
-    def tls_get(p, host):
+    def tls_get(p, host, path='/business', expected=b'/business'):
         import socket
         context = ssl.create_default_context(cafile=str(base / 'ca.pem'))
         with socket.create_connection(('127.0.0.1', p), timeout=2) as raw:
             with context.wrap_socket(raw, server_hostname=host) as connection:
                 certificate = connection.getpeercert(binary_form=True)
-                connection.sendall(('GET /business HTTP/1.1\r\nHost: ' + host + '\r\nConnection: close\r\n\r\n').encode())
+                connection.sendall(('GET ' + path + ' HTTP/1.1\r\nHost: ' + host + '\r\nConnection: close\r\n\r\n').encode())
                 data = b''
                 while part := connection.recv(65536):
                     data += part
-        assert b'200 OK' in data and b'/business' in data
+        assert b'200 OK' in data and expected in data
         return hashlib.sha256(certificate).hexdigest()
     try:
         openssl('req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', str(base / 'ca.key'),
@@ -104,7 +104,7 @@ def main():
                 'publicURL': 'https://' + role + '.example.net', 'stateDirectory': '/fixtures/' + role + '/state',
                 'targetDirectory': '/fixtures/' + role + '/dynamic', 'acmeFile': '/fixtures/acme.json',
                 'adminTokenFile': '/fixtures/' + role + '/admin-token', 'intervalSeconds': 3600,
-                'proxy': {'backendURL': 'http://cert-sync-' + role + ':8080'}}
+                'proxy': {'backendURL': 'http://cert-sync-' + role + ':8080', 'tlsOptions': 'existing-node-policy'}}
             put(base / (role + '.json'), cfg)
         put(base / 'acme.json', acme(original))
         put(base / 'gateway.mjs', '''import http from 'node:http';import https from 'node:https';import fs from 'node:fs';
@@ -132,10 +132,11 @@ http.createServer((q,s)=>{s.end(q.headers.host+'|'+q.url)}).listen(80,'0.0.0.0')
         wait(lambda: cli('follower', 'join', '--invitation', '/fixtures/invitation.json'))
         cli('follower', 'sync'); cli('follower', 'status')
         dynamic = base / 'follower' / 'dynamic'
-        put(dynamic / 'fixture.yml', {'tls': {'certificates': [{
+        put(dynamic / 'fixture.yml', {'tls': {'options': {'existing-node-policy': {'minVersion': 'VersionTLS12'}}, 'certificates': [{
             'certFile': '/fixtures/local-transport.pem', 'keyFile': '/fixtures/local-transport.key'}]},
             'http': {'routers': {'business': {'entryPoints': ['websecure'], 'rule': 'Host(`a.example.net`)',
-                'tls': {}, 'service': 'business'}}, 'services': {'business': {'loadBalancer': {'servers': [{'url': 'http://leader.example.net:80'}]}}}}})
+                'tls': {'options': 'existing-node-policy'}, 'service': 'business'},
+                'existing-node-route': {'entryPoints': ['websecure'], 'rule': 'Host(`follower.example.net`) && Path(`/unrelated`)', 'tls': {'options': 'existing-node-policy'}, 'service': 'business'}}, 'services': {'business': {'loadBalancer': {'servers': [{'url': 'http://leader.example.net:80'}]}}}}})
         static = {'entryPoints': {'web': {'address': ':8080', 'allowACMEByPass': True,
             'http': {'redirections': {'entryPoint': {'to': 'websecure', 'scheme': 'https'}}}},
             'websecure': {'address': ':8443'}},
@@ -156,6 +157,7 @@ http.createServer((q,s)=>{s.end(q.headers.host+'|'+q.url)}).listen(80,'0.0.0.0')
         wait(challenge)
         assert http_get(web, 'follower.example.net', '/.well-known/acme-challenge/synthetic')[0] == 404
         first = wait(lambda: tls_get(secure, 'a.example.net'))
+        wait(lambda: tls_get(secure, 'follower.example.net', '/console', b'cert-sync'))
         # Replace inode like Traefik does: the directory mount must see the new ACME file.
         put(base / 'acme.next', acme(renewed)); os.replace(base / 'acme.next', base / 'acme.json')
         cli('follower', 'sync')
@@ -173,7 +175,7 @@ http.createServer((q,s)=>{s.end(q.headers.host+'|'+q.url)}).listen(80,'0.0.0.0')
         print(json.dumps({'status': 'passed', 'image': args.image, 'checks': ['actual-runtime-cli-init',
             'readonly-nonroot', 'https-token-join', 'authenticated-sync', 'http01-host-preserving-forward',
             'local-acme-bypass-with-redirect', 'transport-host-not-forwarded', 'tls-verified-san',
-            'acme-inode-replacement', 'traefik-certificate-reload', 'revocation-retains-existing-certificate']}))
+            'acme-inode-replacement', 'traefik-certificate-reload', 'existing-nondefault-tls-policy', 'revocation-retains-existing-certificate']}))
     finally:
         for container in reversed(containers):
             subprocess.run(['docker', 'rm', '-f', container], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
