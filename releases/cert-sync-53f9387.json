@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "family": "cert-sync",
+  "sourceCommit": "53f9387cb527c3a0fa46b55e3d4f18e854518eb4",
+  "CI": "https://github.com/joysun99/neptu-images/actions/runs/44222952136",
+  "image": "ghcr.io/joysun99/neptu-cert-sync@sha256:32d328311f17c9de8b36d7d291d71422d15995c19dc03ccc649922c79cb2b1e3",
+  "platform": "linux/amd64",
+  "runtimeManifestDigest": "sha256:95c5b53c54162e0a22ddb28d88b665b29c4fb18dda1f16934c7be77b88da19ba",
+  "runtimeConfigDigest": "sha256:e14b74adad32e5021f83ad0b6f6757362d3f3e7d4e77b10c16a38113e14e838e",
+  "anonymousTokenHTTP": 200,
+  "anonymousManifestHTTP": 200,
+  "exactIndexAndRuntimeManifestSHA256Verified": true,
+  "unitAndProtocolTestsPassed": 18,
+  "integrationChecksPassed": 12,
+  "publishedDigestPullbackAndIntegrationPassed": true,
+  "productionQualified": false,
+  "anonymousDockerPull": {
+    "passed": true,
+    "emptyDockerConfig": true,
+    "existingDaemon": true,
+    "coldDaemonQualified": false
+  }
+}

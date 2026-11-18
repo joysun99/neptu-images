@@ -194,3 +194,15 @@ The deployment candidate must use the published follow-up digest. Existing deplo
 unchanged. Do not make the old application-based package public or treat the
 new service as a drop-in replacement. Deployments need an exact published digest
 and their own site plans; this repository does not restart production.
+
+The deployment candidate [published from `53f9387`](releases/cert-sync-53f9387.json)
+passed 18 protocol tests, 12 real Traefik integration checks, published-digest
+pullback, exact anonymous index/runtime manifest hashing and an actual Docker
+pull with an empty client configuration. Use:
+
+```text
+ghcr.io/joysun99/neptu-cert-sync@sha256:32d328311f17c9de8b36d7d291d71422d15995c19dc03ccc649922c79cb2b1e3
+```
+
+Publication does not authorize production ingress changes or qualify natural
+public-CA renewal. Deployment evidence stays in the deployment repository.
