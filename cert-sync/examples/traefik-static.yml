@@ -1,0 +1,25 @@
+# Merge with existing static configuration; do not replace unrelated entries.
+entryPoints:
+  web:
+    address: ":80"
+    # Follower: permit scoped shared-domain challenge forwarding while local
+    # ACME continues to solve its own unique transport hostname.
+    allowACMEByPass: true
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+providers:
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: operator@example.net
+      storage: /var/lib/traefik/acme/acme.json
+      httpChallenge:
+        entryPoint: web

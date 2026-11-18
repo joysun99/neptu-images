@@ -1,0 +1,5 @@
+services:
+  cert-sync:
+    volumes:
+      # Parent directory mount observes acme.json atomic inode replacement.
+      - ./acme:/run/acme:ro

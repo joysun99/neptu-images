@@ -1,0 +1,24 @@
+# Merge into the node's deployment; Traefik is managed separately.
+services:
+  cert-sync:
+    image: ${CERT_SYNC_IMAGE:?Set a verified ghcr.io/joysun99/neptu-cert-sync@sha256 digest}
+    user: "1000:1000"
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 32
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+    volumes:
+      - ./cert-sync.json:/etc/neptu/cert-sync.json:ro
+      - ./admin-token:/run/secrets/admin-token:ro
+      - ./state:/var/lib/cert-sync
+      - ./dynamic:/etc/traefik/dynamic
+    networks: [ingress]
+networks:
+  ingress:
+    external: true
+    name: ${TRAEFIK_NETWORK:?Set the existing Traefik network name}

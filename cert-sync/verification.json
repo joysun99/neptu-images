@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "service": "cert-sync",
+  "stage": "local-development-unpublished",
+  "sourceBaseCommit": "7d5d380",
+  "sourceWorktree": "uncommitted new family and documentation",
+  "platform": "linux/amd64",
+  "runtimeNode": "24.21.0",
+  "localImage": "ghcr.io/joysun99/neptu-cert-sync:git-local",
+  "localImageId": "sha256:dd0fb5dba3a83bb49101011f37e48f55402b69ea18516c8ca4047cd985f1a7ef",
+  "runtimeUser": "1000:1000",
+  "unitAndProtocolTests": {
+    "passed": 17,
+    "failed": 0,
+    "skipped": 0,
+    "readOnlyRoot": true,
+    "capDrop": "ALL",
+    "syntheticCA": true
+  },
+  "integration": {
+    "status": "passed",
+    "image": "ghcr.io/joysun99/neptu-cert-sync:git-local",
+    "checks": [
+      "actual-runtime-cli-init",
+      "readonly-nonroot",
+      "https-token-join",
+      "authenticated-sync",
+      "http01-host-preserving-forward",
+      "local-acme-bypass-with-redirect",
+      "transport-host-not-forwarded",
+      "tls-verified-san",
+      "acme-inode-replacement",
+      "traefik-certificate-reload",
+      "revocation-retains-existing-certificate"
+    ]
+  },
+  "publishedDigest": null,
+  "productionChanged": false,
+  "productionQualified": false,
+  "limitations": [
+    "No real public CA issuance or natural renewal cycle",
+    "No production node or long-duration qualification",
+    "No Caddy adapter qualification",
+    "No browser automation qualification",
+    "No host power-loss qualification"
+  ],
+  "sha256": {
+    ".github/workflows/cert-sync.yml": "d1e4945c884ebe4ff629bc8f3a7549edea4c313938da573941d3d4597655f91d",
+    "cert-sync/.dockerignore": "8e01a55eb1262b9682fc025cc7cafdd9eb252b2eca4b91580302266951fa5f9c",
+    "cert-sync/Dockerfile": "62a768ab38f342687ce0fcf502539f337209176d895e13c2dfccdd695684bad8",
+    "cert-sync/README.md": "c3f426ff4dc25490de00dae952e6017470786811c76d7767cf8880c4ab9ea78d",
+    "cert-sync/app.mjs": "72160185b3371826a3dd63b94b22386fa423ab055e3bed7ce31ad80ef6d0ff39",
+    "cert-sync/cert-sync": "eab81b3bd4af5e2296939740fe76c07967eb7a7090b4ce5dad8bfb36167dfefc",
+    "cert-sync/cert-sync.test.mjs": "bc6aad52cfe08e6669f452dbfef08194ed1ac57bd9af346d44583f89c0cd5149",
+    "cert-sync/certificates.mjs": "d37a512e70b17fd28631bed005f06aee141baff9c717685e12639ec0dad998bc",
+    "cert-sync/config.mjs": "d32a450066975c8551c07872596d1d35f8d53473a7df5ac9799b7d8ab061f390",
+    "cert-sync/console.mjs": "2b73814f5093e9a443ce1b7146ff15393425078c4514d84bf705b4a9700819de",
+    "cert-sync/docker-bake.hcl": "7394e0e75584f51d1bbadd993deb2ada7151b563c016729fe49be74e66bbcc44",
+    "cert-sync/examples/compose.leader.yml": "0c5d231adc8b5bf557381fa07f3131f6845089427b4a06515d79fe643c097d0b",
+    "cert-sync/examples/compose.yml": "a39993df7ec567bd7ab509828db014abf41c1b734c76e4b6428bd438dae8cc12",
+    "cert-sync/examples/follower.json": "ace12b01b4d5fcc6ebf985b8b844737ad68a89149e3ab47f1426a2def96fbeb3",
+    "cert-sync/examples/leader.json": "e174ce5012cce7759beacfc1c0be35a7be4eafac4ddda361cb09d5867148c851",
+    "cert-sync/examples/traefik-static.yml": "518243343fbaf4c84d1da0a4df5194ec46c1725337c0a54b9e6d39447cdb25c0",
+    "cert-sync/provenance.json": "6fd4c215abfbcbf9b9dc4c8a3ca3cfe0d807a596d90da04e96c55af582fce4dc",
+    "cert-sync/proxy.mjs": "63db3c1f82625dcc27e1d1423ce0ca484ca1aa232e5bb2e53b2c99c89b4bf6b8",
+    "cert-sync/smoke-test.py": "bc7b8df6fe917213376c2dd7330bf5727c3c4516c941ec8a8a171206e77c145f",
+    "cert-sync/store.mjs": "8cb7cb490519ee9acaa9910643bbf1922adc44e2fc121420cbf7a2359ec99e5d"
+  }
+}

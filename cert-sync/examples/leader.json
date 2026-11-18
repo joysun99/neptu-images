@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "role": "leader",
+  "nodeId": "hkg",
+  "profile": "shared",
+  "publicURL": "https://cert-hkg.example.net",
+  "domains": ["dispatch.example.net", "america.dispatch.example.net"],
+  "acmeFile": "/run/acme/acme.json",
+  "stateDirectory": "/var/lib/cert-sync",
+  "targetDirectory": "/etc/traefik/dynamic",
+  "adminTokenFile": "/run/secrets/admin-token",
+  "proxy": {
+    "type": "traefik",
+    "backendURL": "http://cert-sync:8080",
+    "resolver": "letsencrypt",
+    "webEntryPoint": "web",
+    "secureEntryPoint": "websecure"
+  }
+}

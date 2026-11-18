@@ -24,10 +24,15 @@ this public repository.
 - Traefik: `traefik/`, `traefik/docker-bake.hcl`, and
   `.github/workflows/traefik.yml`; package `ghcr.io/joysun99/neptu-traefik`.
 
+- cert-sync: `cert-sync/` and `.github/workflows/cert-sync.yml`; package
+  `ghcr.io/joysun99/neptu-cert-sync`. The user explicitly approved this new name;
+  the legacy private certificate-mirror package retains its historical identity.
+
 Keep workflows scoped to their image families. Node releases use `v*` Git tags;
 Traefik releases use `traefik-v*`. Changes to root scripts/Bake/ignore files can
 trigger Node publication, so use a family-local build context for independent
-images. Do not rebuild unrelated images merely to add documentation or a family.
+images. Do not rebuild unrelated images merely to add documentation or a family. cert-sync
+PR/main runs verify only; its manual publish input opts in to publication from main.
 
 ## Build and Publication
 

@@ -170,3 +170,23 @@ The same pre-rollout inspection recorded USG at
 (3.7.13). These are historical import/rollback references. Subsequent deployments
 use the verified central publication above, with their current site state and
 execution evidence maintained by the deployment repository.
+
+## cert-sync independent certificate service
+
+The user-approved service/CLI name is **cert-sync**, with a new public-image family
+`ghcr.io/joysun99/neptu-cert-sync`. See the [configuration and installation guide](cert-sync/README.md),
+[examples](cert-sync/examples/leader.json), [source provenance](cert-sync/provenance.json),
+and [local verification](cert-sync/verification.json).
+
+This new implementation supports independent Leader/Follower roles, scoped Token
+Join, authenticated HTTPS certificate synchronization, CLI/Web Console domain
+configuration, and Traefik HTTP-01 forwarding and certificate reload. It requires
+no node-to-node SSH authorization. Caddy adapters remain future work. Source,
+Dockerfile and a separate opt-in publication workflow live here; no private
+application layer or production certificate material is included.
+
+The new runtime is locally verified and **unpublished**. Existing deployed
+`neptu-global-dispatch-certificate-mirror` images and historical names remain
+unchanged. Do not make the old application-based package public or treat the
+new service as a drop-in replacement. Deployments need an exact published digest
+and their own site plans; this repository does not restart production.

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "importedFrom": {
+    "repository": "neptu-global",
+    "revision": "db4fa6fafad292de0a4e9d8a9bdf3abcc50a0caa",
+    "source": "deploy/maintenance/dispatch-certificate-mirror.mjs",
+    "sha256": "512df1de2db9bc290471e71f647021e6957166a821baa986f1d8ef3df500b9b5",
+    "relationship": "Read-only reference for selected-certificate extraction and atomic PEM publication; new HTTPS Join/auth/Console/proxy code is independent."
+  },
+  "legacyDeploymentImage": "ghcr.io/joysun99/neptu-global-dispatch-certificate-mirror@sha256:13cc88a68df4fc33552b342de2d2320ffa8700b7068bfc63c420dac96efe9261",
+  "runtimeNodeVersion": "24.21.0",
+  "baseImage": "node:24.21.0-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20",
+  "runtimeContainsPrivateApplicationCode": false,
+  "compatibility": "New independent HTTPS Leader/Follower service with scoped Token Join and state-v2 publication. Not a drop-in legacy SSH/config/state replacement; existing production remains unchanged.",
+  "package": "ghcr.io/joysun99/neptu-cert-sync",
+  "serviceName": "cert-sync",
+  "status": "local-development-unpublished"
+}

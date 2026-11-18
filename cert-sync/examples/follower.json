@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "role": "follower",
+  "nodeId": "usg",
+  "profile": "shared",
+  "publicURL": "https://cert-usg.example.net",
+  "domains": ["dispatch.example.net", "america.dispatch.example.net"],
+  "stateDirectory": "/var/lib/cert-sync",
+  "targetDirectory": "/etc/traefik/dynamic",
+  "adminTokenFile": "/run/secrets/admin-token",
+  "intervalSeconds": 3600,
+  "retrySeconds": 30,
+  "proxy": {
+    "type": "traefik",
+    "backendURL": "http://cert-sync:8080",
+    "resolver": "letsencrypt",
+    "webEntryPoint": "web",
+    "secureEntryPoint": "websecure"
+  }
+}

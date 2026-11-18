@@ -1,0 +1,10 @@
+*
+!Dockerfile
+!app.mjs
+!certificates.mjs
+!config.mjs
+!store.mjs
+!proxy.mjs
+!console.mjs
+!cert-sync
+!cert-sync.test.mjs
