@@ -1,3 +1,5 @@
+Global Cert Sync Go runtime is managed in [cert-sync/go](cert-sync/go/README.md), with private application source and reviewed public binary inputs. Existing Node release receipts keep their historical identities.
+
 # Neptu runtime images
 
 This is the canonical repository for **all future Neptu public image management

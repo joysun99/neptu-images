@@ -36,7 +36,8 @@ source and a public runtime image. Keep only that future image definition,
 reviewed binary input, licenses, verification and publication here. The current
 Node sources/image are already public historical implementation; do not claim
 that a repository move conceals JavaScript shipped in a public image. The Go
-rewrite is deferred until the current validated Node rollout is complete.
+runtime now uses `cert-sync/go/` and the scoped cert-sync workflow with reviewed
+cert-only binary input; current Node files/receipts remain historical references.
 
 Keep workflows scoped to their image families. Node releases use `v*` Git tags;
 Traefik releases use `traefik-v*`. Changes to root scripts/Bake/ignore files can

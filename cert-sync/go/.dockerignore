@@ -1,0 +1,6 @@
+*
+!Dockerfile
+!.inputs/
+!.inputs/gds
+!licenses/
+!licenses/*.txt

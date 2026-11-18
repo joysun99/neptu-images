@@ -1,3 +1,5 @@
+Go implementation: see [Global Cert Sync runtime](go/README.md) for the reviewed cert-only binary, current publication workflow and preserved state contract. The Node instructions below remain historical reference.
+
 # cert-sync
 
 独立的证书同步服务，服务／命令名 `cert-sync`，新镜像包
