@@ -148,8 +148,8 @@ changed to Public, the [public access verification](releases/traefik-7dee2ee-pub
 confirmed anonymous token/manifest HTTP 200, the exact manifest SHA-256, and a
 successful Docker pull with an empty client configuration and no supplied login
 credentials. The original receipt retains its historical HTTP 401 observation;
-the follow-up access evidence records the current public state. This release
-does not change the running HKG/USG images.
+the follow-up access evidence records the current public state. Publication and deployment are separate operations; production rollouts follow
+the deployment repository’s site-specific plans.
 
 Never deploy a moving source tag as a substitute for the reviewed digest.
 Rebuilding the imported recipe creates a new image identity because source
@@ -158,13 +158,15 @@ HKG digest automatically. Existing offline archives and release records retain
 their original image identity. Publication does not restart deployed services.
 Production upgrades still need a site-specific plan and authorization.
 
-As of the 2026-11-18 read-only inspection, HKG uses the existing baseline:
+The pre-rollout read-only inspection on 2026-11-18 recorded this historical HKG
+baseline:
 
 ```text
 ghcr.io/joysun99/neptu-traefik@sha256:acffd8c4f10796d5b34397431e7d7c62c4ace03b89f5a470f441a613965f6e3f
 ```
 
-USG still uses `sha256:de799a2a372626fefacf1e227283cd58b1e99b0433d8391e2392942ad104e6eb`
-(3.7.13). Aligning USG to the existing HKG digest is a separate, bounded ingress
-change; it does not require first publishing a rebuilt image. New central builds
-must pass their workflow and site review before replacing this baseline.
+The same pre-rollout inspection recorded USG at
+`sha256:de799a2a372626fefacf1e227283cd58b1e99b0433d8391e2392942ad104e6eb`
+(3.7.13). These are historical import/rollback references. Subsequent deployments
+use the verified central publication above, with their current site state and
+execution evidence maintained by the deployment repository.
