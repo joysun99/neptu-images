@@ -119,8 +119,15 @@ and manual runs publish source tags `git-<full-git-sha>`; tag runs also publish
 the Git release tag. There is no `latest` alias. Actions use `GITHUB_TOKEN`
 with package write permission, publish build provenance, pull back the actual
 published digest, and repeat both runtime-user checks. The Actions summary
-records the deployment reference. This workflow does not build or publish the
-Node images. The existing `v*` tags remain reserved for Node releases; use
+records the deployment reference. For an existing GHCR package, grant this
+repository **Write** under the package settings → **Manage Actions access**;
+workflow `packages: write` alone does not grant access to another repository’s
+existing package. See [GitHub package access documentation](https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility).
+Package visibility is separate: set **Public** when anonymous pulls are required,
+or retain authenticated pulls for a private package. Do not copy an operator
+token into this repository to bypass package access setup.
+
+This workflow does not build or publish the Node images. The existing `v*` tags remain reserved for Node releases; use
 `traefik-v*` for Traefik releases.
 
 Future deployment manifests must select the verified output by **digest**:
