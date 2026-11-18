@@ -143,10 +143,13 @@ ghcr.io/joysun99/neptu-traefik@sha256:f4ce119ce03dc781b7e4c2d12d26d286668d8d84fe
 ```
 
 The [release receipt](releases/traefik-7dee2ee.json) records successful publication,
-registry pullback and both runtime-user checks. This package currently requires
-registry login: the anonymous check returned HTTP 401. Set the package to Public
-if unauthenticated server pulls are required. This release does not change the
-running HKG/USG images.
+registry pullback and both runtime-user checks. After the package visibility was
+changed to Public, the [public access verification](releases/traefik-7dee2ee-public-access.json)
+confirmed anonymous token/manifest HTTP 200, the exact manifest SHA-256, and a
+successful Docker pull with an empty client configuration and no supplied login
+credentials. The original receipt retains its historical HTTP 401 observation;
+the follow-up access evidence records the current public state. This release
+does not change the running HKG/USG images.
 
 Never deploy a moving source tag as a substitute for the reviewed digest.
 Rebuilding the imported recipe creates a new image identity because source

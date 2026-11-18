@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-18T00:35:11.555383+00:00",
+  "reference": "ghcr.io/joysun99/neptu-traefik@sha256:f4ce119ce03dc781b7e4c2d12d26d286668d8d84fe68aea61e19d8c59d4d979f",
+  "credentialsSupplied": false,
+  "anonymousTokenHTTPStatus": 200,
+  "manifestHTTPStatus": 200,
+  "manifestDigestVerified": true,
+  "schemaVersion": 1,
+  "kind": "public-image-access-verification",
+  "sourceCommit": "7dee2ee0f2152299c104462d9746a3f4384ff0bc",
+  "publicationReceipt": "traefik-7dee2ee.json",
+  "publicationReceiptSHA256": "e1d5544d90e7aa148e89a8f7a9d69035ee268f6174394a14195275848de7a089",
+  "verificationCompletedAt": "2026-11-18T00:36:06.881481+00:00",
+  "anonymousPull": true,
+  "dockerPullExitCode": 0,
+  "emptyDockerClientConfig": true,
+  "authenticationEnvironmentCleared": true,
+  "existingDaemonAndLayerCacheMayBeReused": true,
+  "originalLoginConfigurationChanged": false,
+  "productionDeploymentChanged": false,
+  "supersedes": "The initial HTTP 401 access observation in the publication receipt; image identity and original publication checks are unchanged."
+}
