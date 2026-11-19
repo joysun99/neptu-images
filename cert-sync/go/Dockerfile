@@ -25,5 +25,5 @@ WORKDIR /
 EXPOSE 8080
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/gds","cert"]
-CMD ["serve","--config","/etc/neptu/cert-sync.json"]
-HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 CMD ["/gds","cert","probe","--config","/etc/neptu/cert-sync.json"]
+CMD ["serve"]
+HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 CMD ["/gds","cert","probe"]

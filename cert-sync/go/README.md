@@ -61,13 +61,22 @@ The host test UID is used for bind-mount ownership and must be nonroot.
 ```bash
 docker run --rm <verified-digest> version
 docker run --rm <verified-digest> capabilities
-docker exec <container> /gds cert status --config /etc/neptu/cert-sync.json
-docker exec <container> /gds cert probe --config /etc/neptu/cert-sync.json
-docker exec <container> cert-sync clients --config /etc/neptu/cert-sync.json
+docker exec <container> /gds cert status
+docker exec <container> /gds cert probe
+docker exec <container> cert-sync clients
 ```
 
-The default foreground entry is `/gds cert serve --config /etc/neptu/cert-sync.json`.
-Existing `run --config ...` command overrides are accepted. The legacy executable
+The default foreground entry is `/gds cert serve`. Mount the host configuration
+file read-only at `/etc/gds/cert/config.json` in the Compose service.
+
+```yaml
+volumes:
+  - /absolute/host/config.json:/etc/gds/cert/config.json:ro
+```
+
+The image healthcheck and CLI use that path by default. For a different mount
+target, pass the same explicit `--config PATH` to startup, the healthcheck and
+CLI commands. The legacy executable
 supports `check/init/run/status/domains/join/sync/create-join-token/revoke/clients/console`.
 No Node interpreter, application daemon or second Docker process manager is used.
 
