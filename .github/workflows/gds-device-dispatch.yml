@@ -47,7 +47,7 @@ jobs:
           provenance: false
       - name: Verify actual binary, runtime users and source binding
         run: |
-          python3 gds-device-dispatch/smoke-test.py --image "ghcr.io/joysun99/neptu-images:gds-device-dispatch-git-$SOURCE_COMMIT"
+          python3 gds-device-dispatch/smoke-test.py --image "ghcr.io/joysun99/neptu-device-dispatch:$GDS_VERSION"
       - name: Log in for publication only
         if: github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/main'
         uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550
@@ -70,8 +70,10 @@ jobs:
           BUILD_METADATA: ${{ steps.publish.outputs.metadata }}
         run: |
           DIGEST=$(python3 -c 'import json,os; print(json.loads(os.environ["BUILD_METADATA"])["gds-device-dispatch"]["containerimage.digest"])')
-          IMAGE="ghcr.io/joysun99/neptu-images@$DIGEST"
+          IMAGE="ghcr.io/joysun99/neptu-device-dispatch@$DIGEST"
+          echo "DEVICE_DISPATCH_PUBLISHED_DIGEST=$DIGEST"
           python3 deploy/pull-public-image.py "$IMAGE"
           python3 gds-device-dispatch/smoke-test.py --image "$IMAGE"
+          echo "Published version: `ghcr.io/joysun99/neptu-device-dispatch:$GDS_VERSION`" >> "$GITHUB_STEP_SUMMARY"
           echo "Deployment reference: \`$IMAGE\`" >> "$GITHUB_STEP_SUMMARY"
           echo "Binary source: \`$SOURCE_COMMIT\`; recipe: \`$GITHUB_SHA\`. Production rollout remains separate." >> "$GITHUB_STEP_SUMMARY"

@@ -20,5 +20,5 @@ target "gds-device-dispatch" {
     RECIPE_COMMIT = REVISION
     SOURCE_DATE_EPOCH = SOURCE_DATE_EPOCH
   }
-  tags = ["ghcr.io/joysun99/neptu-images:gds-device-dispatch-git-${SOURCE_COMMIT}"]
+  tags = ["ghcr.io/joysun99/neptu-device-dispatch:${GDS_VERSION}"]
 }

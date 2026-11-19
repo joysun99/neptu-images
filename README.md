@@ -44,9 +44,9 @@ application's full-release integrity validator.
 
 The [GDS Device Dispatch family](gds-device-dispatch/README.md) packages an
 explicitly reviewed static Go binary without publishing private application
-source. It uses this repository's existing public package with isolated
-`gds-device-dispatch-git-*` tags. Source and recipe commits are recorded
-separately; production consumes the verified digest through its own rollout.
+source. New releases use `ghcr.io/joysun99/neptu-device-dispatch` with a SemVer
+tag. The earlier shared-package tags retain their original images. Release
+records identify the verified digest for the separately authorized rollout.
 
 ## Build and validate
 

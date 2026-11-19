@@ -2,17 +2,17 @@
   "schemaVersion": 1,
   "service": "gds-device-dispatch",
   "platform": "linux/amd64",
-  "binaryURL": "https://github.com/joysun99/neptu-images/releases/download/gds-input-42def38/gds-linux-amd64",
-  "binaryBytes": 27605472,
-  "binarySHA256": "f471645538dc0943c883fcabb7cb309333861b8c3f5722e71a3ec40de89d5a2e",
-  "sourceCommit": "42def3831fd5d3a4a685786e875a1a729f2ffcba",
-  "sourceTree": "3c01e39a9481896d42226539b05e4962abb68503da0bc00a8b5edfb35ec4e1a7",
+  "binaryURL": "https://github.com/joysun99/neptu-images/releases/download/gds-input-eb2323e0/gds-linux-amd64",
+  "binaryBytes": 31194554,
+  "binarySHA256": "66c5e06396a30109e053c916516b1ffe255e630b341e6176aed273a4897b8cd2",
+  "sourceCommit": "eb2323e0d23ccc3d36ef39ce4a3faf99c17b4078",
+  "sourceTree": "3f3ab64a38487a64096744650cd5f9cb85bb26cd425f498cac5ab47d50c426b8",
   "sourceDirty": false,
-  "version": "0.1.0-t3.device-capacity.rc.1",
-  "nativeManifestSHA256": "19051d6e38a071bf24ba4d0de2bcbf37bbc7a63f6a8bcbc5175bba96c2181eff",
-  "createdAt": 1795003466,
-  "imagePackage": "ghcr.io/joysun99/neptu-images",
-  "imageTagPrefix": "gds-device-dispatch-git-",
+  "version": "0.1.0-rc.1",
+  "nativeManifestSHA256": "91ad220d245707fb425d8e9459d1643f9b5ae5e060a7644922e408c98bec799a",
+  "createdAt": 1795085558,
+  "imagePackage": "ghcr.io/joysun99/neptu-device-dispatch",
+  "imageTagPrefix": "",
   "inputContract": "Reviewed prebuilt static binary only; no private source, configuration, credentials, keys or production data are published.",
   "licenseFileSHA256": {
     "licenses/bitset.txt": "409ae7da5df143584d1ae1e94bd0f1d5b3b2d134d1e354cf3160cdbf263849d1",
@@ -24,6 +24,7 @@
     "licenses/x-net-patents.txt": "96f408bfae65bf137fc2525d3ecb030271c50c1e90799f87abf8846d8dd505cc",
     "licenses/x-net.txt": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
     "licenses/x-text-patents.txt": "96f408bfae65bf137fc2525d3ecb030271c50c1e90799f87abf8846d8dd505cc",
-    "licenses/x-text.txt": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad"
+    "licenses/x-text.txt": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+    "licenses/htmx.txt": "d3d2456f76414f2456104660ebd65aff1c04cd7966b942bdabd63f3cdb316a38"
   }
 }

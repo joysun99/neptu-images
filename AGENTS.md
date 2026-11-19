@@ -21,9 +21,10 @@ this public repository.
 
 - Node 24 Slim and FFmpeg: root `docker-bake.hcl`, `node-24/`, and
   `.github/workflows/build.yml`; package `ghcr.io/joysun99/neptu-images`.
-- GDS Device Dispatch: `gds-device-dispatch/` and its scoped workflow; the existing
-  `ghcr.io/joysun99/neptu-images` package, isolated `gds-device-dispatch-git-*` tags.
-  Use the approved prebuilt binary input contract; private Go source stays private.
+- GDS Device Dispatch: `gds-device-dispatch/` and its scoped workflow. New releases
+  use `ghcr.io/joysun99/neptu-device-dispatch` with SemVer version tags. Retain the
+  historical `neptu-images:gds-device-dispatch-git-*` references. Use the approved
+  prebuilt binary input contract and keep Go source private.
 - Traefik: `traefik/`, `traefik/docker-bake.hcl`, and
   `.github/workflows/traefik.yml`; package `ghcr.io/joysun99/neptu-traefik`.
 

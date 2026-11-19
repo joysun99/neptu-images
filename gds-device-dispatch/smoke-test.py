@@ -28,11 +28,13 @@ def main():
     try:
         command('docker','create','--name',name,a.image);created=True
         with tempfile.TemporaryDirectory(prefix='gds-input-image-') as directory:
-            binary=Path(directory,'gds');ca=Path(directory,'ca.pem')
+            binary=Path(directory,'gds');ca=Path(directory,'ca.pem');notice=Path(directory,'htmx.txt')
             command('docker','cp',name+':/gds',str(binary));command('docker','cp',name+':/etc/ssl/certs/ca-certificates.crt',str(ca))
+            command('docker','cp',name+':/usr/share/licenses/gds/htmx.txt',str(notice))
+            assert hashlib.sha256(notice.read_bytes()).hexdigest()==lock['licenseFileSHA256']['licenses/htmx.txt']
             assert hashlib.sha256(binary.read_bytes()).hexdigest()==lock['binarySHA256'];assert ssl.create_default_context(cafile=str(ca)).get_ca_certs()
     finally:
         if created:subprocess.run(['docker','rm',name],check=True,stdout=subprocess.DEVNULL,timeout=15)
-    print(json.dumps({'status':'passed','image':a.image,'imageID':image['Id'],'sourceCommit':lock['sourceCommit'],'version':lock['version'],'checks':['exact-binary-bytes','static-runtime-entrypoint','public-ca-bundle','two-nonroot-users','readonly-network-none','version-source-tree-binding','capability-v84-no-production-relabel'],'businessOrSQLAccess':False}))
+    print(json.dumps({'status':'passed','image':a.image,'imageID':image['Id'],'sourceCommit':lock['sourceCommit'],'version':lock['version'],'checks':['exact-binary-bytes','static-runtime-entrypoint','public-ca-bundle','pinned-htmx-license','two-nonroot-users','readonly-network-none','version-source-tree-binding','capability-v84-no-production-relabel'],'businessOrSQLAccess':False}))
 
 if __name__=='__main__':main()

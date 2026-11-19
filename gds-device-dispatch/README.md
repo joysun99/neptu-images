@@ -5,10 +5,9 @@ application source remains in its original private repository. Only the binary,
 public CA bundle and dependency licenses enter this image; production settings,
 identities, credentials, certificates and business data never enter the context.
 
-The image uses the existing public `ghcr.io/joysun99/neptu-images` package with
-`gds-device-dispatch-git-<full-Go-source-commit>` tags. This prefix is separate
-from Node runtime tags. Deploy only the digest from a successful publication;
-publishing does not authorize production lifecycle changes.
+The image is published to the dedicated public `ghcr.io/joysun99/neptu-device-dispatch`
+package with the reviewed SemVer application version as its tag. Verify the
+published digest before deployment. Production adoption is authorized separately.
 
 ## Reviewed input and provenance
 
