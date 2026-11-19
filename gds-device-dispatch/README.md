@@ -8,7 +8,8 @@ identities, credentials, certificates and business data never enter the context.
 The image is published to the dedicated public `ghcr.io/joysun99/neptu-device-dispatch`
 package with the reviewed SemVer application version as its tag. Verify the
 published digest before deployment. Production adoption is authorized separately.
-See the [0.1.0-rc.1 publication record](publication-eb2323e0.json).
+See the [0.1.0-rc.2 publication record](publication-9e491e6e.json) or
+the earlier [0.1.0-rc.1 record](publication-eb2323e0.json).
 
 ## Reviewed input and provenance
 
