@@ -20,5 +20,8 @@ target "cert-sync" {
     RECIPE_COMMIT = REVISION
     SOURCE_DATE_EPOCH = SOURCE_DATE_EPOCH
   }
-  tags = ["ghcr.io/joysun99/neptu-cert-sync:go-git-${SOURCE_COMMIT}"]
+  tags = [
+    "ghcr.io/joysun99/neptu-cert-sync:${CERT_VERSION}",
+    "ghcr.io/joysun99/neptu-cert-sync:go-git-${SOURCE_COMMIT}"
+  ]
 }

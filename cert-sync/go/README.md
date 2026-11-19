@@ -7,8 +7,11 @@ Release, dependency notices, verification and documentation. It contains no
 application source, node configuration, identity, Token, private key or data.
 
 Historical Node definitions and release evidence remain in the parent directory.
-Go tags use `go-git-<full-private-source-commit>`; old `git-*` Node tags retain
-their original meaning. Deploy the digest of a successfully verified publication.
+Each release publishes its service version tag and the
+`go-git-<full-private-source-commit>` provenance tag from the same image target.
+Check that the chosen version is available before publication. Record the
+published digest with the version after anonymous verification. Historical Node
+`git-*` tags retain their original meaning.
 
 ## Input and provenance
 
